@@ -255,7 +255,6 @@ One thing you may notice is that I did not use the `CallerMemberName` attribute 
 With a module in place, we can now create a model which can have the functionality weaved in:
 
 ``` csharp
-
 public class Person : DelegatingObject {
     private string _Name;
 
@@ -284,7 +283,6 @@ The implementation is pretty simple. The thing to remember is that in order for 
 There are a few different ways we can work with this object now:
 
 ``` csharp
-
 public void UsingModelObjectAsDynamic() {
     dynamic person = new Person();
     // The cast to the interface will work returning the inner module
