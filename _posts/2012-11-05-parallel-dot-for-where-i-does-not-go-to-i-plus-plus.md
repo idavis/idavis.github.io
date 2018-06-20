@@ -24,17 +24,26 @@ It turns out that there is no support for this in the PFX API. Parallel.For does
 
 ``` csharp
 public class Sequence {
-  public static IEnumerable<int> From(int min, int max, int increment = 1, int offset = 0) {
+  public static IEnumerable<int> From(int min,
+                                      int max,
+                                      int increment = 1,
+                                      int offset = 0) {
     return From(min, max, i => i += increment, offset);
   }
  
-  public static IEnumerable<int> From(int min, int max, Func<int, int> increment, int offset = 0) {
+  public static IEnumerable<int> From(int min,
+                                      int max,
+                                      Func<int, int> increment,
+                                      int offset = 0) {
     return From(min, max, increment, i => true, offset);
   }
  
   // ... The rest of the API hidden for brevity ...
  
-  public static IEnumerable<int> From(int min, int max, Func<int, int> increment, Func<int, bool> filter) {
+  public static IEnumerable<int> From(int min,
+                                      int max,
+                                      Func<int, int> increment,
+                                      Func<int, bool> filter) {
     for (int i = min; i < max; i = increment(i)) {
       if (filter(i)) {
         yield return i;
@@ -62,7 +71,11 @@ public class Sequence {
     return From(min, max, i => Operator.Add<T>(i, increment), offset);
   }
  
-  public static IEnumerable<T> From<T>(T min, T max, T increment, Func<T, bool> filter, T offset) {
+  public static IEnumerable<T> From<T>(T min, 
+                                       T max,
+                                       T increment,
+                                       Func<T, bool> filter,
+                                       T offset) {
     return From(Operator.Add<T>(min, offset),
            i => Operator.LessThan(i, max),
            i => Operator.Add<T>(i, increment),
@@ -71,7 +84,10 @@ public class Sequence {
  
   // ... The rest of the API hidden for brevity ...
  
-  public static IEnumerable<T> From<T>(T min, Func<T, bool> max, Func<T, T> increment, Func<T, bool> filter) {
+  public static IEnumerable<T> From<T>(T min,
+                                       Func<T, bool> max,
+                                       Func<T, T> increment,
+                                       Func<T, bool> filter) {
     for (T i = min; max(i); i = increment(i)) {
       if (filter(i)) {
         yield return i;
@@ -125,7 +141,10 @@ If we look back to our original set of problems to solve, we have taken care of 
 Parallel.ForEach(Sequence.From(min, max, increment, offset), Console.WriteLine);
 Parallel.ForEach(Sequence.From(3, N, i => i += 2, isPrime), Console.WriteLine);
 Parallel.ForEach(Sequence.From(0, 6 * Math.PI, i => i + Math.PI), Console.WriteLine);
-Parallel.ForEach(Sequence.From(new BigInteger(min), new BigInteger(max), i => i += 3), i => Console.WriteLine(i.ToString()));
+Parallel.ForEach(Sequence.From(new BigInteger(min), 
+                               new BigInteger(max),
+                               i => i += 3), 
+                               i => Console.WriteLine(i.ToString()));
 ```
 Now I give you the full implementation for the ```Sequence``` class.
 ``` csharp
@@ -161,18 +180,29 @@ public class Sequence {
     return From(min, max, i => Operator.Add<T>(i, increment));
   }
 
-  public static IEnumerable<T> From<T>(T min, T max, T increment, Func<T, bool> filter, T offset) {
+  public static IEnumerable<T> From<T>(T min,
+                                       T max,
+                                       T increment,
+                                       Func<T, bool> filter,
+                                       T offset) {
     return From(Operator.Add<T>(min, offset),
            i => Operator.LessThan(i, max),
            i => Operator.Add<T>(i, increment),
            filter);
   }
 
-  public static IEnumerable<T> From<T>(T min, T max, Func<T, T> increment, Func<T, bool> filter) {
+  public static IEnumerable<T> From<T>(T min,
+                                       T max,
+                                       Func<T, T> increment,
+                                       Func<T, bool> filter) {
     return From(min, i => Operator.LessThan(i, max), increment, filter);
   }
 
-  public static IEnumerable<T> From<T>(T min, T max, Func<T, T> increment, Func<T, bool> filter, T offset) {
+  public static IEnumerable<T> From<T>(T min,
+                                       T max,
+                                       Func<T, T> increment,
+                                       Func<T, bool> filter,
+                                       T offset) {
     return From(Operator.Add<T>(min, offset),
            i => Operator.LessThan(i, max),
            increment,
@@ -183,7 +213,10 @@ public class Sequence {
     return From(min, max, increment, i => true);
   }
 
-  public static IEnumerable<T> From<T>(T min, Func<T, bool> max, Func<T, T> increment, Func<T, bool> filter) {
+  public static IEnumerable<T> From<T>(T min,
+                                       Func<T, bool> max,
+                                       Func<T, T> increment,
+                                       Func<T, bool> filter) {
     for (T i = min; max(i); i = increment(i)) {
       if (filter(i)) {
         yield return i;
