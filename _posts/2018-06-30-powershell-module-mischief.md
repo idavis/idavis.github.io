@@ -1,12 +1,12 @@
 ---
 layout: post
 title: "Powershell Module Mischief: Loki"
-date: 2018-06-26 6:11
-published: false
+date: 2018-06-30 11:05
+published: true
 categories: powershell monkeypatching
 ---
 
-> What would it look like if your command line updated itself to be aware of the repo you were in?
+> What would it look like if your command line updated itself and was context aware?
 
 Thinking this through, we have a couple requirements
 1. When moving into a directory or its children, you should be in the context of that directory.
@@ -22,7 +22,7 @@ $setLocationMetadata =
     > Set-Location.Proxy.ps1
 {% endhighlight %}
 
-With this we can replace what happens every time we change directories, but we are going to keep is simple and just add a little hook. The code is abbreviated:
+With this we can replace what happens every time we change directories, but we are going to keep is simple and just add a little hook. The code is abbreviated from `Set-Location.Proxy.ps1`:
 
 {% highlight powershell %}
 [CmdletBinding(DefaultParameterSetName='Default' <# more params #>)]
@@ -38,15 +38,16 @@ end {
     } catch {
         throw
     }
-    <# ===================== THIS IS WHERE WE HOOK IN ===================== #>
-    Register-LokiFile
+
+    Register-LokiFile <# <<======== THIS IS THE HOOK #>
 }
 <# more docs #>
 {% endhighlight %}
 
-Now in our profile, we need to set functionality.
+Now in our profile, we need to add the `Register-LokiFile` functionality. A `.loki*` file will be the naming convention for custom code to load.
 
 {% highlight powershell %}
+# Register a global dictionary to store data.
 $Global:__loki = @{}
  
 function Register-LokiFile {
@@ -62,7 +63,7 @@ function Register-LokiFile {
   $lokiFile = Get-LokiFile
   if(!$lokiFile) { return }
 
-  # we have a loki file. Unload the current if one is loaded, and different
+  # we have a loki file. Unload the current if one is loaded (and different)
   if($Global:__loki.current -and !($Global:__loki.current -eq $lokiFile)) {
     if($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent) {
       Write-Host "Removing loki config file: $($Global:__loki.current)"
@@ -70,21 +71,27 @@ function Register-LokiFile {
     Remove-Module -Name $Global:__loki.current -Force -ErrorAction SilentlyContinue
     $Global:__loki.current = $null
   }
+
   # set the current loki file
   $Global:__loki.current = "$lokiFile"
   if($PSCmdlet.MyInvocation.BoundParameters["Debug"].IsPresent) {
     Write-Host "Importing loki config file: $lokiFile"
   }
+
   # create a new, empty module
   $module = New-Module -Name "$lokiFile" -ScriptBlock {}
+
   # source the loki file into the new module's scope and monkey patch it
   . $module $lokiFile
+
   # import the module
   Import-Module $module
 }
 
-<# Finally set up our proxy #>
+<# Finally set up our proxy function which registers the modules #>
 . \Set-Location.Proxy.ps1
 {% endhighlight %}
+
+Now, as we move around in the command line, we can have custom functionality weave in and out with us.
 
 The full repo is found at [idavis/loki](https://github.com/idavis/loki).
