@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Installing nvidia-docker2 on ubuntu 18.04 (January 2019)"
+title: "Installing nvidia-docker2 on Ubuntu 18.04 (January 2019)"
 date: 2019-01-25 6:00
 published: true
 categories: docker ubuntu nvidia
