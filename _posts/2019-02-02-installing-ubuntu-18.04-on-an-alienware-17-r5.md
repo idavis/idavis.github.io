@@ -9,9 +9,9 @@ categories: alienware ubuntu killernic
 
 Ubuntu 18.04 runs great on on the Alienware 17 R5, but not out of the box.
 
-1. Touchpad
-2. Wi-Fi
-3. Drivers
+1. [Touchpad](#touchpad)
+2. [Wi-Fi](#wi-fi)
+3. [Video Driver](#video-driver)
 
 ## Touchpad
 
