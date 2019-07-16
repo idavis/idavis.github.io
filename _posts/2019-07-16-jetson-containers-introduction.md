@@ -2,8 +2,8 @@
 layout: post
 title: "Jetson Containers - Introduction"
 date: 2019-07-16 6:00
-published: false
-categories: jetson moby docker jax xavier tx1 tx2 iot
+published: true
+categories: jetson moby docker jax xavier nano tx2 iot
 ---
 # Introduction
 
@@ -167,7 +167,34 @@ Successfully tagged l4t:jax-jetpack-4.2-deps
 We can see the files installed into the image:
 
 ```
-docker run --rm -it l4t:jax-jetpack-4.2-deps ls -la /data
+~/jetson-containers$ docker run --rm -it l4t:jax-jetpack-4.2-deps pushd data && ls -a /data | xargs sha1sum
+.
+..
+Jetson_Linux_R32.1.0_aarch64.tbz2
+Tegra_Linux_Sample-Root-Filesystem_R32.1.0_aarch64.tbz2
+Tegra_Multimedia_API_R32.1.0_aarch64.tbz2
+cuda-repo-l4t-10-0-local-10.0.166_1.0-1_arm64.deb
+graphsurgeon-tf_5.0.6-1+cuda10.0_arm64.deb
+libcudnn7-dev_7.3.1.28-1+cuda10.0_arm64.deb
+libcudnn7-doc_7.3.1.28-1+cuda10.0_arm64.deb
+libcudnn7_7.3.1.28-1+cuda10.0_arm64.deb
+libnvinfer-dev_5.0.6-1+cuda10.0_arm64.deb
+libnvinfer-samples_5.0.6-1+cuda10.0_all.deb
+libnvinfer5_5.0.6-1+cuda10.0_arm64.deb
+libopencv-dev_3.3.1-2-g31ccdfe11_arm64.deb
+libopencv-python_3.3.1-2-g31ccdfe11_arm64.deb
+libopencv-samples_3.3.1-2-g31ccdfe11_arm64.deb
+libopencv_3.3.1-2-g31ccdfe11_arm64.deb
+libvisionworks-repo_1.6.0.500n_arm64.deb
+libvisionworks-sfm-repo_0.90.4_arm64.deb
+libvisionworks-tracking-repo_0.88.2_arm64.deb
+python-libnvinfer-dev_5.0.6-1+cuda10.0_arm64.deb
+python-libnvinfer_5.0.6-1+cuda10.0_arm64.deb
+python3-libnvinfer-dev_5.0.6-1+cuda10.0_arm64.deb
+python3-libnvinfer_5.0.6-1+cuda10.0_arm64.deb
+sdkml3_jetpack_l4t_42.json
+tensorrt_5.0.6.3-1+cuda10.0_arm64.deb
+uff-converter-tf_5.0.6-1+cuda10.0_arm64.deb
 ```
 
 With this image built we can now build the L4T base driver image followed by the JetPack 4.2 images (base, runtime, devel) which map to the official NVIDIA images for CUDA.
@@ -254,3 +281,5 @@ arm64v8/ubuntu              bionic-20190307                0926e73e5245        4
 ```
 
 At this point we can now start layering in the application. The [project README](https://github.com/idavis/jetson-containers#jetson-containers) has many more details not discussed in this post.
+
+Push these images to your container registry so that they can be used by your CI pipeline and deployments.
