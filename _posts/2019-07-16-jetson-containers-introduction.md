@@ -15,6 +15,8 @@ The unit of deployment has been moving toward containers, and IoT isn't exempt. 
 
 The default experience for work with Jetson products is to download the SDK Manager and use it to download components and flash your device. This is great for a "10 minutes to wow" demo but it isn't useful when productionizing the platform.
 
+Note: If you plan to build the images on the Jetson devices, the eMMCs will not be large enough. Secondary storage such as SATA HDDs, NVME M.2 drives, or PCIe riser cards for SATA/NVME drives will need to be used. You cannot use USB based storage drives as they are not mounted early enough and are too slow.
+
 # Building L4T Base Layers
 
 An OCI compatible image which will run in a container on a Jetson device is built upon layers:
@@ -45,7 +47,7 @@ There are two ways detailed below. The manual way has you run the SDK Manager an
 We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano/tx2). Both UI and Terminal options are listed for each step.
 
 Note:
-For all images built here, you can override the image repository with the `REPO` variable (in the `.env` file) setting it to your container registry: `REPO=l4t                       ` but it will default to `REPO=l4t`.
+For all images built here, you can override the image repository with the `REPO` variable (in the `.env` file) setting it to your container registry: `REPO=mycr.azurecr.io/l4t` but it will default to `REPO=l4t`.
 
 ### Manual
 
