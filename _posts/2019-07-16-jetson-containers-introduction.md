@@ -135,14 +135,14 @@ Retrieving data...
 Data retrieved successfully.
 Installation of this software is under the terms and conditions of the license agreements located in /opt/NVIDIA/sdkmanager/Eula/
  Download:                                                              
-File System and OS                       [————————————————————————————————————————————————————————————] 0% 
-Drivers for Jetson AGX                   [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————] 84% 4.64MB/s
-CUDA Toolkit for L4T                     [▇▇▇▇▇▇▇—————————————————————————————————————————————————————] 12% 4.62MB/s
-cuDNN on Target                          [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇———————————————] 75% 10.86MB/s
-TensorRT on Target                       [▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————————————————————————————————————————] 24% 6.56MB/s
-OpenCV on Target                       ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100%
-VisionWorks on Target                    [————————————————————————————————————————————————————————————] 0% 
-Multimedia API                           [————————————————————————————————————————————————————————————] 0% 
+File System and OS     [————————————————————————————————————————————————————————————] 
+Drivers for Jetson AGX [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————]
+CUDA Toolkit for L4T   [▇▇▇▇▇▇▇—————————————————————————————————————————————————————]
+cuDNN on Target        [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇———————————————]
+TensorRT on Target     [▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————————————————————————————————————————]
+OpenCV on Target    ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 
+VisionWorks on Target  [————————————————————————————————————————————————————————————]
+Multimedia API         [————————————————————————————————————————————————————————————]
 ```
 
 Once the components are downloaded, the installer will trigger a nested `Docker` build using the downloaded files as its context. When prompted, type `pass` as the password. This is a temporary user's password in the container. You can override this as well using `TMP_USER` and `TMP_PASS` variables in the `.env` file.
@@ -270,14 +270,14 @@ Let's take a look:
 ```bash
 ~/jetson-containers$ docker images
 
-REPOSITORY                  TAG                            IMAGE ID            CREATED             SIZE
-l4t                         32.1-jax-jetpack-4.2-devel     de2ed18cebec        11 hours ago        5.67GB
-l4t                         32.1-jax-jetpack-4.2-runtime   a54a646c621a        11 hours ago        1.21GB
-l4t                         32.1-jax-jetpack-4.2-base      43d7611be441        11 hours ago        493MB
-l4t                         32.1-jax                       8a49131eecad        12 hours ago        483MB
-l4t                         jax-jetpack-4.2-deps           b22598e1a164        12 hours ago        3.32GB
-l4t                         jetpack-sdkmanager             0e997459a486        12 hours ago        952MB
-arm64v8/ubuntu              bionic-20190307                0926e73e5245        4 months ago        80.4MB
+REPOSITORY                  TAG                            IMAGE ID            SIZE
+l4t                         32.1-jax-jetpack-4.2-devel     de2ed18cebec        5.67GB
+l4t                         32.1-jax-jetpack-4.2-runtime   a54a646c621a        1.21GB
+l4t                         32.1-jax-jetpack-4.2-base      43d7611be441        493MB
+l4t                         32.1-jax                       8a49131eecad        483MB
+l4t                         jax-jetpack-4.2-deps           b22598e1a164        3.32GB
+l4t                         jetpack-sdkmanager             0e997459a486        952MB
+arm64v8/ubuntu              bionic-20190307                0926e73e5245        80.4MB
 ```
 
 At this point we can now start layering in the application. The [project README](https://github.com/idavis/jetson-containers#jetson-containers) has many more details not discussed in this post.
