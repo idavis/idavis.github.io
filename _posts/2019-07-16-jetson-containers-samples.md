@@ -7,7 +7,17 @@ categories: jetson moby docker jax xavier nano tx2 iot
 ---
 # Introduction
 
-The [last post][] covered how to build out the needed infrastructure to begin building applications for the NVIDIA Jetson platform. For our first application, we're going to build the JetPack samples and create a minimal container from that.
+The [last post][] covered how to build out the needed infrastructure to begin building applications for the NVIDIA Jetson platform.
+
+For our first application, we're going to build the JetPack samples and create a minimal container from that. This involves [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build) which allow us to isolate our build environment from the deployment environment and leverage the base images created for the device.
+
+Note: We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano/tx2). Both UI and Terminal options are listed for each step. For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
+
+UI:
+
+Press `Ctrl+Shift+B`, select `make <other options>`, select `build-32.1-jax-jetpack-4.2-samples`, press `Enter`.
+
+Terminal:
 
 ```bash
 ~/jetson-containers$ make build-32.1-jax-jetpack-4.2-samples
