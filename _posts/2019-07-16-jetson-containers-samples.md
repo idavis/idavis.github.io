@@ -36,7 +36,7 @@ docker build  --build-arg IMAGE_NAME=l4t \
 
 The Dockerfile with those variable defined is very straightforward. It compiles the `cuda-10.0` samples using the `devel` image, then leveraging multi-stage build, creates the final image from the `runtime` image, and installs dependencies needed to run the samples, and then copies the compiled samples from the `devel` based container into the final image.
 
-The dependent libraries installed on top of the `runtime` image was found by running `ldd` against each binary identifying each missing dependency. For your applications, this process will be simpler as you'll be building much fewer than the 130+ applications.
+The dependent libraries installed on top of the `runtime` image were found by running `ldd` against each binary identifying each missing dependency. For your applications, this process will be simpler as you'll be building much fewer than the 130+ applications.
 
 ```Dockerfile
 FROM l4t:32.1-jax-jetpack-4.2-devel as builder
