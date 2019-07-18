@@ -167,7 +167,7 @@ deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 10.0, CUDA Runtime Vers
 Result = PASS
 ```
 
-We see that the device is working and can that the GPU is visible in the container. From here you can run various samples, though some of them will fail if they try to create windows. 
+We see that the device is working and that the GPU is visible in the container. From here you can run various samples, though some of them will fail if they try to create windows. 
 
 If you want to see the samples' UI, we have a couple options, but we'll have to save that for a future post.
 
