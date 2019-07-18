@@ -1,7 +1,6 @@
-
 ---
 layout: post
-title: "Jetson Containers - Introduction"
+title: "Jetson - Maximizing Jetson Nano Storage"
 date: 2019-07-16 6:00
 published: false
 categories: jetson nano iot
@@ -12,7 +11,7 @@ Launch the NVIDIA SDK Manager as normal and go through the process of setting up
 
 The `EMMCSIZE` is the size of the drive. This isn't exact and I haven't figured out why. A 128GB drive is 122070 MiB, but really 122070 MiB is 127.999672 GB. When inspecting the drive, the reported size of the drive is 121942 MiB, which is 128 MiB smaller than expected. If we keep this pattern:
 
-The default EMMCSIZE is 4194304MiB, but the nano doesn't use an eMMC. Perhaps there is another module to come with built-in storage. The default `ROOTFSSIZE` is 14GiB.
+The default EMMCSIZE is 4194304MiB, but the nano doesn't use an eMMC. Perhaps there is another module to come with built-in storage. The default `ROOTFSSIZE` is 14GiB. 
 
 `` 
 | Card Size | EMMCSIZE | ROOTFSSIZE |
