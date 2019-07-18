@@ -42,16 +42,12 @@ Create a new file named `.env` in the repository root folder. This file is sourc
 
 The first bit we need to get the JetPack dependencies in a reusable form which we can version control and leverage across multiple images.
 
-There are two ways detailed below. The manual way has you run the SDK Manager and then running a build. The automated way build a container which has the SDK Manager installed and automates the running of the tool.
-
 We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano/tx2). Both UI and Terminal options are listed for each step.
 
 Note:
 For all images built here, you can override the image repository with the `REPO` variable (in the `.env` file) setting it to your container registry: `REPO=mycr.azurecr.io/l4t` but it will default to `REPO=l4t`.
 
-### Manual
-
-#### Download the Components
+### Download the Components
 
 - Run the NVIDIA SDK Manager. Log in, select your
   - Product: Jetson
@@ -83,73 +79,9 @@ Terminal:
 make jax-jetpack-4.2-deps-from-folder
 ```
 
-### Automated
-
- Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting.
+Output:
 
 ```bash
-NV_USER=your@email.com
-```
-
-UI:
-
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2-deps` and hit `Enter`.
-
-Terminal:
-
-```bash
-~/jetson-containers$ make jax-jetpack-4.2-deps
-```
-
-This will create an image with the NVIDIA SDK Manager installed and then run the image with your developer account email address. Eventually, you'll see something like:
-
-```bash
-Successfully tagged l4t:jetpack-sdkmanager
-docker run  \
-        --rm \
-        -it \
-        -e "DOCKER=docker" \
-        -e "DEVICE_ID=P2888" \
-        -e "DEVCIE_OPTION=--target" \
-        -e "NV_USER=your@email.com" \
-        -e "TAG=l4t:jax-jetpack-4.2-deps" \
-        -e "NV_LOGIN_TYPE=devzone" \
-        -e "PRODUCT=Jetson" \
-        -e "JETPACK_VERSION=4.2" \
-        -e "TARGET_OS=Linux" \
-        -e "ACCEPT_SDK_LICENCE=accept" \
-        -v //var//run//docker.sock://var//run//docker.sock \
-        l4t:jetpack-sdkmanager
-Please enter password for user your@email.com:
-password:  
-```
-
-Enter your account password and hit `Enter`.
-
-You'll now see the JetPack 4.2 Xavier files downloading:
-
-```bash
-Logging in...
-Login succeeded.
-Retrieving data...
-Data retrieved successfully.
-Installation of this software is under the terms and conditions of the license agreements located in /opt/NVIDIA/sdkmanager/Eula/
- Download:                                                              
-File System and OS     [————————————————————————————————————————————————————————————] 
-Drivers for Jetson AGX [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————]
-CUDA Toolkit for L4T   [▇▇▇▇▇▇▇—————————————————————————————————————————————————————]
-cuDNN on Target        [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇———————————————]
-TensorRT on Target     [▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————————————————————————————————————————]
-OpenCV on Target    ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 
-VisionWorks on Target  [————————————————————————————————————————————————————————————]
-Multimedia API         [————————————————————————————————————————————————————————————]
-```
-
-Once the components are downloaded, the installer will trigger a nested `Docker` build using the downloaded files as its context. When prompted, type `pass` as the password. This is a temporary user's password in the container. You can override this as well using `TMP_USER` and `TMP_PASS` variables in the `.env` file.
-
-```bash
-All done!
-[sudo] password for dummy: 
 Sending build context to Docker daemon  3.233GB
 Step 1/4 : ARG VERSION_ID=bionic-20190307
 Step 2/4 : FROM ubuntu:${VERSION_ID}
