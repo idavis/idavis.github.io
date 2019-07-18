@@ -30,7 +30,7 @@ Which runs:
 ```bash
 docker build  --build-arg IMAGE_NAME=l4t \
               -t l4t:32.1-jax-jetpack-4.2-samples \
-              -f /home/<usermane>/dev/jetson-containers/docker/examples/samples/Dockerfile \
+              -f /home/<user>/dev/jetson-containers/docker/examples/samples/Dockerfile \
               .
 ```
 
