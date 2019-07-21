@@ -75,17 +75,19 @@ SDKM_DOWNLOADS=/home/yourusername/Downloads/nvidia/somefolder
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2-deps-from-folder` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2.1-deps-from-folder` and hit `Enter`.
 
 Terminal:
 
 ```bash
-make jax-jetpack-4.2-deps-from-folder
+make jax-jetpack-4.2.1-deps-from-folder
 ```
 
 ### Automated
 
  Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting.
+
+ Note: This automation requires that you have the latest NVIDIA SDK Manager installed on your system.
 
 ```bash
 NV_USER=your@email.com
@@ -93,38 +95,24 @@ NV_USER=your@email.com
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2-deps` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2.1-deps` and hit `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make jax-jetpack-4.2-deps
+~/jetson-containers$ make jax-jetpack-4.2.1-deps
 ```
 
-This will create an image with the NVIDIA SDK Manager installed and then run the image with your developer account email address. Eventually, you'll see something like:
+This will create construct a command line to automate the NVIDIA SDK Manager you have installed, and then run the image with your developer account email address. Eventually, you'll see something like:
 
 ```bash
-Successfully tagged l4t:jetpack-sdkmanager
-docker run  \
-        --rm \
-        -it \
-        -e "DOCKER=docker" \
-        -e "DEVICE_ID=P2888" \
-        -e "DEVCIE_OPTION=--target" \
-        -e "NV_USER=your@email.com" \
-        -e "TAG=l4t:jax-jetpack-4.2-deps" \
-        -e "NV_LOGIN_TYPE=devzone" \
-        -e "PRODUCT=Jetson" \
-        -e "JETPACK_VERSION=4.2" \
-        -e "TARGET_OS=Linux" \
-        -e "ACCEPT_SDK_LICENCE=accept" \
-        -v //var//run//docker.sock://var//run//docker.sock \
-        l4t:jetpack-sdkmanager
+mkdir -p /tmp/GA_4.2.1/P2888
+sdkmanager --cli downloadonly --user iadavis@microsoft.com --logintype devzone --product Jetson --version GA_4.2.1 --targetos Linux --target P2888 --flash skip --license accept --downloadfolder /tmp/GA_4.2.1/P2888
 Please enter password for user your@email.com:
 password:  
 ```
 
-Enter your account password and hit `Enter`.
+Enter your account password and hit `Enter`. If you enter an incorrect password, kill the build with `Ctrl+c` and run again. The SDK Manager doesn't set the exit code correctly for invalid passwords so the tooling thinks everything is fine.
 
 You'll now see the JetPack 4.2 Xavier files downloading:
 
@@ -133,46 +121,51 @@ Logging in...
 Login succeeded.
 Retrieving data...
 Data retrieved successfully.
-Installation of this software is under the terms and conditions of the license agreements located in /opt/NVIDIA/sdkmanager/Eula/
- Download:                                                              
-File System and OS     [————————————————————————————————————————————————————————————] 
-Drivers for Jetson AGX [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————]
-CUDA Toolkit for L4T   [▇▇▇▇▇▇▇—————————————————————————————————————————————————————]
-cuDNN on Target        [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇———————————————]
-TensorRT on Target     [▇▇▇▇▇▇▇▇▇▇▇▇▇▇——————————————————————————————————————————————]
-OpenCV on Target    ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 
-VisionWorks on Target  [————————————————————————————————————————————————————————————]
-Multimedia API         [————————————————————————————————————————————————————————————]
+Installation of this software is under the terms and conditions of the license agreements located in /opt/nvidia/sdkmanager/Eula/
+Download:                                                           
+ File System and OS                     ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ Drivers for Jetson TX1/Nano            ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ CUDA Toolkit for L4T                   ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ cuDNN on Target                        ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ TensorRT on Target                     ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ OpenCV on Target                       ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ VisionWorks on Target                  ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ NVIDIA Container Runtime with Docke... ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+ Multimedia API                         ✔ [▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇] 100
+Install log file is available at: /home/idavis/.nvsdkm/sdkm.log     
+All done!
 ```
 
-Once the components are downloaded, the installer will trigger a nested `Docker` build using the downloaded files as its context. When prompted, type `pass` as the password. This is a temporary user's password in the container. You can override this as well using `TMP_USER` and `TMP_PASS` variables in the `.env` file.
+Once the components are downloaded, the installer will trigger a `Docker` build using the downloaded files as its context.
 
 ```bash
-All done!
-[sudo] password for dummy: 
-Sending build context to Docker daemon  3.233GB
-Step 1/4 : ARG VERSION_ID=bionic-20190307
+docker build --squash \
+             --build-arg VERSION_ID="bionic-20190612" \
+             -t l4t:jax-jetpack-4.2.1-deps \
+             -f /home/<user>/jetson-containers/docker/jetpack/dependencies.Dockerfile \
+             /tmp/GA_4.2.1/P2888
+Sending build context to Docker daemon  3.482GB
+Step 1/4 : ARG VERSION_ID
 Step 2/4 : FROM ubuntu:${VERSION_ID}
- ---> 94e814e2efa8
+ ---> 4c108a37151f
 Step 3/4 : RUN mkdir /data
- ---> Running in a63022a7f532
-Removing intermediate container a63022a7f532
- ---> b682f2921611
+ ---> Using cache
+ ---> 4fec3121a53b
 Step 4/4 : COPY ./  ./data
  ---> b22598e1a164
 Successfully built b22598e1a164
-Successfully tagged l4t:jax-jetpack-4.2-deps
+Successfully tagged l4t:jax-jetpack-4.2.1-deps
 ```
 
 We can see the files installed into the image:
 
 ```
-~/jetson-containers$ docker run --rm -it l4t:jax-jetpack-4.2-deps pushd data && ls -a /data | xargs sha1sum
+~/jetson-containers$ docker run --rm -it l4t:jax-jetpack-4.2.1-deps ls -a /data
 .
 ..
-Jetson_Linux_R32.1.0_aarch64.tbz2
-Tegra_Linux_Sample-Root-Filesystem_R32.1.0_aarch64.tbz2
-Tegra_Multimedia_API_R32.1.0_aarch64.tbz2
+Jetson_Linux_R32.2.0_aarch64.tbz2
+Tegra_Linux_Sample-Root-Filesystem_R32.2.0_aarch64.tbz2
+Tegra_Multimedia_API_R32.2.0_aarch64.tbz2
 cuda-repo-l4t-10-0-local-10.0.166_1.0-1_arm64.deb
 graphsurgeon-tf_5.0.6-1+cuda10.0_arm64.deb
 libcudnn7-dev_7.3.1.28-1+cuda10.0_arm64.deb
@@ -197,7 +190,7 @@ tensorrt_5.0.6.3-1+cuda10.0_arm64.deb
 uff-converter-tf_5.0.6-1+cuda10.0_arm64.deb
 ```
 
-With this image built we can now build the L4T base driver image followed by the JetPack 4.2 images (base, runtime, devel) which map to the official NVIDIA images for CUDA.
+With this image built we can now build the L4T base driver image followed by the JetPack 4.2.1 images (base, runtime, devel) which map to the official NVIDIA images for CUDA.
 
 ## Building the Containers
 
@@ -221,7 +214,7 @@ Building on the device requires more setup, but can be faster that QEMU builds i
 
 Setting the `DOCKER_HOST` variable in the `.env` will proxy builds to another machine such as a Jetson device. This allows running the `make` scripts from the `x86_x64` host. When using this feature, it is helpful to add your public key to the device's `~/.ssh/authorized_keys` file. This will prevent credential checks on every build.
 
-Install `docker.io` on the device.
+SSH into the device and run `sudo usermod -aG docker $USER` so that docker no longer needs `sudo` to run. You'll want to reboot the machine after running this for it to take effect.
 
 Storing these images will also require significant disk space. It is highly recommended that an NVME or other hard drive is installed and mounted at boot through fstab. If the drive isn't mounted using `fstab`, the device won't be mounted early enough and the images will start being saved to your eMMC/MicroSD card.Once mounted, configure your container runtime to store its containers and images there (see daemon.json below).
 
@@ -241,43 +234,52 @@ We're going to make the driver pack now which has a small root file system with 
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <driver packs>`, select `l4t-32.1-jax`, press `Enter`. 
+Press `Ctrl+Shift+B`, select `make <driver packs>`, select `l4t-32.2-jax`, press `Enter`. 
 
 Terminal:
 
 ```bash
-make l4t-32.1-jax
+make l4t-32.2-jax
 ```
 
-Once built, you should see `Successfully tagged l4t:32.1-jax`
+Once built, you should see `Successfully tagged l4t:32.2-jax`
 
 ### JetPack Component Installation
 
-The JetPack 4.2 base images follow the NVIDIA pattern of having base, runtime, and devel images for each device. The following command will build them all.
+The JetPack 4.2 and newer base images in the `jetson-containers` project follow the NVIDIA pattern of having `base`, `runtime`, and `devel` images for each device. The following command will build them all.
 
-Press `Ctrl+Shift+B`, select `make <jetpack options>`, select `32.1-jax-jetpack-4.2`, press `Enter`.
+- `base`: Contains the bare minimum CUDA runtime (libcudart) to deploy a CUDA application
+  - This will be what you will want to build your IoT device from to optimize the image size. You'll manually select the libraries needed and layer them into the image. The `runtime` and `devel` images show how to do this leveraging the dependencies images we've built in this post.
+- `runtime`: Adds all shared libraries from the CUDA toolkit on top of the `base` image.
+  - This can be used to run applications which using multiple CUDA libraries without having to build an optimized container on the `base` image.
+- `devel`: Adds the compiler toolchain, debugging tools, headers and static libraries, docs, and samples to the `runtime` image.
+  - This image is for compiling CUDA applications from source and setting up a build agent.
+
+UI:
+
+Press `Ctrl+Shift+B`, select `make <jetpack options>`, select `32.2-jax-jetpack-4.2.1`, press `Enter`.
 
 Terminal:
 
 ```bash
-make 32.1-jax-jetpack-4.2
+make 32.2-jax-jetpack-4.2.1
 ```
 
-Once built, you should see `Successfully tagged l4t:32.1-jax-jetpack-4.2`
+Once built, you should see `Successfully tagged l4t:32.2-jax-jetpack-4.2.1`
 
 Let's take a look:
 
 ```bash
 ~/jetson-containers$ docker images
 
-REPOSITORY                  TAG                            IMAGE ID            SIZE
-l4t                         32.1-jax-jetpack-4.2-devel     de2ed18cebec        5.67GB
-l4t                         32.1-jax-jetpack-4.2-runtime   a54a646c621a        1.21GB
-l4t                         32.1-jax-jetpack-4.2-base      43d7611be441        493MB
-l4t                         32.1-jax                       8a49131eecad        483MB
-l4t                         jax-jetpack-4.2-deps           b22598e1a164        3.32GB
-l4t                         jetpack-sdkmanager             0e997459a486        952MB
-arm64v8/ubuntu              bionic-20190307                0926e73e5245        80.4MB
+REPOSITORY                  TAG                            SIZE
+l4t                         32.2-jax-jetpack-4.2.1-devel   5.67GB
+l4t                         32.2-jax-jetpack-4.2.1-runtime 1.21GB
+l4t                         32.2-jax-jetpack-4.2.1-base    493MB
+l4t                         32.2-jax                       483MB
+l4t                         jax-jetpack-4.2.1-deps         3.32GB
+l4t                         jetpack-sdkmanager             952MB
+arm64v8/ubuntu              bionic-20190307                80.4MB
 ```
 
 At this point we can now start layering in the application. The [project README](https://github.com/idavis/jetson-containers#jetson-containers) has many more details not discussed in this post.

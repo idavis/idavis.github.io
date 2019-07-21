@@ -17,19 +17,19 @@ Note: We're going to start off with Xavier (jax) but you can also run Nano/TX2 b
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `build-32.1-jax-jetpack-4.2-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <other options>`, select `build-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make build-32.1-jax-jetpack-4.2-samples
+~/jetson-containers$ make build-32.2-jax-jetpack-4.2.1-samples
 ```
 
 Which runs:
 
 ```bash
 docker build  --build-arg IMAGE_NAME=l4t \
-              -t l4t:32.1-jax-jetpack-4.2-samples \
+              -t l4t:32.2-jax-jetpack-4.2.1-samples \
               -f /home/<user>/dev/jetson-containers/docker/examples/samples/Dockerfile \
               .
 ```
@@ -39,12 +39,12 @@ The Dockerfile with those variable defined is very straightforward. It compiles 
 The dependent libraries installed on top of the `runtime` image were found by running `ldd` against each binary identifying each missing dependency. For your applications, this process will be simpler as you'll be building much fewer than the 130+ applications.
 
 ```Dockerfile
-FROM l4t:32.1-jax-jetpack-4.2-devel as builder
+FROM l4t:32.2-jax-jetpack-4.2.1-devel as builder
 
 WORKDIR /usr/local/cuda-10.0/samples
 RUN make -j$($(nproc) - 1)
 
-FROM l4t:32.1-jax-jetpack-4.2-runtime
+FROM l4t:32.2-jax-jetpack-4.2.1-runtime
 
 # Prereqs
 
@@ -70,18 +70,18 @@ COPY --from=builder /usr/local/cuda-10.0/samples/ /samples
 WORKDIR /samples/bin/aarch64/linux/release/
 ```
 
-The final `l4t:32-1-jax-jetpack-4.2-samples` image adds 1.11GB of which 0.86GB is the sample binaries themselves:
+The final `l4t:32.2-jax-jetpack-4.2.1-samples` image adds 1.11GB of which 0.86GB is the sample binaries themselves:
 
 | Component | Size |
 |---|---|
-| l4t:32.1-jax-jetpack-4.2-devel | 5.67GB |
-| l4t:32-1-jax-jetpack-4.2-runtime | 1.21GB |
+| l4t:32.2-jax-jetpack-4.2.1-devel | 5.67GB |
+| l4t:32.2-jax-jetpack-4.2.1-runtime | 1.21GB |
 | /samples |  859.7MB |
-| l4t:32-1-jax-jetpack-4.2-samples | 2.32 GB |
+| l4t:32.2-jax-jetpack-4.2.1-samples | 2.32 GB |
 
-The `l4t:32-1-jax-jetpack-4.2-samples` has a layer for the external dependencies and will be cached should future updates to the sample binaries be required. This layering is by design with images. Large layers, and layers that change infrequently, come in first. Then the more volatile pieces are laid in on top. This gives us smaller updates to deployments.
+The `l4t:32.2-jax-jetpack-4.2.1-samples` has a layer for the external dependencies and will be cached should future updates to the sample binaries be required. This layering is by design with images. Large layers, and layers that change infrequently, come in first. Then the more volatile pieces are laid in on top. This gives us smaller updates to deployments.
 
-If you are not running the builds on your device, push the `l4t:32-1-jax-jetpack-4.2-samples` image to your container registry so that the device can pull down the images.
+If you are not running the builds on your device, push the `l4t:32.2-jax-jetpack-4.2.1-samples` image to your container registry so that the device can pull down the images.
 
 # Running the Samples
 
@@ -93,12 +93,12 @@ Note: You may need to log into your container registry on the device in order to
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `run-32.1-jax-jetpack-4.2-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <other options>`, select `run-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make run-32.1-jax-jetpack-4.2-samples
+~/jetson-containers$ make run-32.2-jax-jetpack-4.2.1-samples
 ```
 
 Which runs:
@@ -114,7 +114,7 @@ docker run  \
         --device=/dev/nvhost-gpu \
         --device=/dev/nvhost-as-gpu \
         --device=/dev/nvhost-vic \
-        l4t:32.1-jax-jetpack-4.2-samples
+        l4t:32.2-jax-jetpack-4.2.1-samples
 ```
 
 From here you'll be given a command prompt. Let's run the device's `"Hello, World!"`, `deviceQuery`:
