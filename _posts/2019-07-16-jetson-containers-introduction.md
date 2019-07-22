@@ -3,11 +3,11 @@ layout: post
 title: "Jetson Containers - Introduction"
 date: 2019-07-16 6:00
 published: true
-categories: jetson moby docker jax xavier nano tx2 iot
+categories: jetson docker jax xavier nano tx2 iot
 ---
 # Introduction
 
-The unit of deployment has been moving toward containers, and IoT isn't exempt. Developing containerized workloads for Jetson, NVIDIA's AI at the edge IoT product suite, devices requires several components:
+The unit of deployment has been moving toward containers, and IoT isn't exempt. Developing containerized workloads for Jetson devices, NVIDIA's AI at the edge IoT product suite, requires several components:
  
  - Linux for Tegra (Linux4Tegra, L4T): a package providing a bootloader, customized Linux kernel, drivers, flashing utilities, and sample file systems (this is more but out of scope for this introduction)
   - JetPack: The Jetson SDKs which bundle cuDNN, CUDA Toolkit, TensorRT, VisionWorks, GStreamer, and OpenCV 
@@ -19,11 +19,11 @@ Note: If you plan to build the images on the Jetson devices, the eMMCs will not 
 
 # Building L4T Base Layers
 
-An OCI compatible image which will run in a container on a Jetson device is built upon layers:
+An [Open Container Initiative (OCI)](https://www.opencontainers.org/) compatible image which will run in a container on a Jetson device is built upon layers:
  - Base Image (such as arm64v8/ubuntu:bionic-20190612)
- - L4T Customization of Base Image
+ - L4T Customization of Base Layer
  - JetPack Component Installation
- - Application Image
+ - Application Layer
 
 To aid in automating this process, I'll be leveraging the [jetson-containers](https://github.com/idavis/jetson-containers) repository. It is a collection of `make` tasks, Visual Studio Code tasks, and `Dockerfile`s to bootstrap and help productionize Jetson container-based applications.
 
@@ -38,16 +38,15 @@ git clone https://github.com/idavis/jetson-containers.git
 cd jetson-containers/
 ```
 
-Create a new file named `.env` in the repository root folder. This file is sourced into your build steps and configures the builds.
+Create a new file named `.env` in the repository's root folder. This file is sourced into your build steps and configures the builds.
 
-The first bit we need to get the JetPack dependencies in a reusable form which we can version control and leverage across multiple images.
+To get started we need the JetPack dependencies in a reusable form which we can version control and leverage across multiple images.
 
-There are two ways detailed below. The manual way has you run the SDK Manager and then running a build. The automated way build a container which has the SDK Manager installed and automates the running of the tool.
+There are two ways detailed below. The manual way has you run the SDK Manager and then running a build. The runs SDK Manager you have installed and automates its execution.
 
-We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano/tx2). Both UI and Terminal options are listed for each step.
+We're going to start off with [Xavier (jax)](https://developer.nvidia.com/embedded/jetson-agx-xavier-developer-kit) but you can also run Nano/TX2 builds here (just substitute the text jax for nano-dev/tx2). Both UI and Terminal options are listed for each step.
 
-Note:
-For all images built here, you can override the image repository with the `REPO` variable (in the `.env` file) setting it to your container registry: `REPO=mycr.azurecr.io/l4t` but it will default to `REPO=l4t`.
+Note: For all images built here, you can override the image repository with the `REPO` variable (in the `.env` file) setting it to your container registry: `REPO=mycr.azurecr.io/l4t` but it will default to `REPO=l4t`.
 
 ### Manual
 
@@ -70,7 +69,7 @@ For all images built here, you can override the image repository with the `REPO`
  Enter the location to which the JetPack packages we downloaded (from the previous step) into the `.env` file using the `SDKM_DOWNLOADS` setting.
 
 ```bash
-SDKM_DOWNLOADS=/home/yourusername/Downloads/nvidia/somefolder
+SDKM_DOWNLOADS=/home/<user>/Downloads/nvidia/somefolder
 ```
 
 UI:
@@ -85,9 +84,9 @@ make jax-jetpack-4.2.1-deps-from-folder
 
 ### Automated
 
- Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting.
+ Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting. If using an nvidia partner account, also set `NV_LOGIN_TYPE=nvonline` as the default is `NV_LOGIN_TYPE=devzone`.
 
- Note: This automation requires that you have the latest NVIDIA SDK Manager installed on your system.
+ Note: This automation requires that you have the latest NVIDIA SDK Manager installed on your system. NVIDIA enforces this and the tool fails to run if the tool isn't up-to-date.
 
 ```bash
 NV_USER=your@email.com
@@ -103,18 +102,18 @@ Terminal:
 ~/jetson-containers$ make jax-jetpack-4.2.1-deps
 ```
 
-This will create construct a command line to automate the NVIDIA SDK Manager you have installed, and then run the image with your developer account email address. Eventually, you'll see something like:
+This will construct a command line execution of the NVIDIA SDK Manager you have installed, and then run the image with your developer account email address. Eventually, you'll see something like:
 
 ```bash
 mkdir -p /tmp/GA_4.2.1/P2888
-sdkmanager --cli downloadonly --user iadavis@microsoft.com --logintype devzone --product Jetson --version GA_4.2.1 --targetos Linux --target P2888 --flash skip --license accept --downloadfolder /tmp/GA_4.2.1/P2888
+sdkmanager --cli downloadonly --user your@email.com --logintype devzone --product Jetson --version GA_4.2.1 --targetos Linux --target P2888 --flash skip --license accept --downloadfolder /tmp/GA_4.2.1/P2888
 Please enter password for user your@email.com:
 password:  
 ```
 
-Enter your account password and hit `Enter`. If you enter an incorrect password, kill the build with `Ctrl+c` and run again. The SDK Manager doesn't set the exit code correctly for invalid passwords so the tooling thinks everything is fine.
+Enter your account password and hit `Enter`. If you enter an incorrect password, kill the build with `Ctrl+c` and run again. The SDK Manager doesn't set the exit code correctly for invalid passwords, so the tooling thinks everything is fine and will build an incorrect image.
 
-You'll now see the JetPack 4.2 Xavier files downloading:
+You'll now see the JetPack 4.2.1 Xavier files downloading:
 
 ```bash
 Logging in...
@@ -139,6 +138,7 @@ All done!
 Once the components are downloaded, the installer will trigger a `Docker` build using the downloaded files as its context.
 
 ```bash
+# Continuing from previous command execution
 docker build --squash \
              --build-arg VERSION_ID="bionic-20190612" \
              -t l4t:jax-jetpack-4.2.1-deps \

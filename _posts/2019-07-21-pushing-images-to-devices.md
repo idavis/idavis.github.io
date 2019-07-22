@@ -2,14 +2,14 @@
 layout: post
 title: "Jetson Containers - Pushing Images to Devices"
 date: 2019-07-21 6:00
-published: false
-categories: jetson nano iot
+published: true
+categories: jetson docker nvidia-docker nano iot xavier
 ---
 # Introduction
 
 If you haven't walked through the The [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first.
 
-Compiling the CUDA samples for the Nano is really hard [compared to using the Xavier][]. It doesn't have nearly the resources required. We can get around this by compiling the container on the host.
+Compiling the CUDA samples for the Nano is really hard [compared to using the Xavier][] as it doesn't have nearly the resources required. We can get around this by compiling the container on the host.
 
 Once you completed [creating the dependencies image][] and [creating the JetPack images][], we can build the samples.
 
@@ -42,7 +42,7 @@ REPOSITORY          TAG                                    SIZE
 l4t                 32.2-nano-dev-jetpack-4.2.1-samples    2.34GB
 ```
 
-Assuming you've followed the device setup in the [first post][], we can now push this image to the device. This will save a lot of time compared to pushing to a container registry and then pull the image down.
+Assuming you've followed the device setup in the [first post][], we can now push this image to the device. This will save a lot of time compared to pushing to a container registry and then pulling the image down.
 
 ```bash
 docker save l4t:32.2-nano-dev-jetpack-4.2.1-samples | ssh user@host 'docker load'
@@ -129,6 +129,8 @@ Device 0: "NVIDIA Tegra X1"
 deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 10.0, CUDA Runtime Version = 10.0, NumDevs = 1
 Result = PASS
 ```
+
+Now we have a quick way to build images on the `x86_64` host and push directly to the device.
 
 [first post]: /2019/07/jetson-containers-introduction
 [compared to using the Xavier]: /2019/07/jetson-containers-samples

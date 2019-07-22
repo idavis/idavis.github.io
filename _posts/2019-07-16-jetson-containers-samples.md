@@ -3,7 +3,7 @@ layout: post
 title: "Jetson Containers - Samples"
 date: 2019-07-17 6:00
 published: true
-categories: jetson moby docker jax xavier nano tx2 iot
+categories: jetson docker jax xavier nano tx2 iot
 ---
 # Introduction
 
@@ -11,7 +11,7 @@ The [last post][] covered how to build out the needed infrastructure to begin bu
 
 For our first application, we're going to build the JetPack samples and create a minimal container from that. This involves [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build) which allow us to isolate our build environment from the deployment environment and leverage the base images created for the device.
 
-Note: We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano/tx2). Both UI and Terminal options are listed for each step. For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
+Note: We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano-dev/tx2). Both UI and Terminal options are listed for each step. For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
 
 # Building the Samples
 
@@ -34,7 +34,7 @@ docker build  --build-arg IMAGE_NAME=l4t \
               .
 ```
 
-The Dockerfile with those variable defined is very straightforward. It compiles the `cuda-10.0` samples using the `devel` image, then leveraging multi-stage build, creates the final image from the `runtime` image, and installs dependencies needed to run the samples, and then copies the compiled samples from the `devel` based container into the final image.
+The Dockerfile with those variables defined is very straightforward. It compiles the `cuda-10.0` samples using the `devel` image, then leveraging multi-stage build, creates the final image from the `runtime` image, and installs dependencies needed to run the samples, and then copies the compiled samples from the `devel` based container into the final image.
 
 The dependent libraries installed on top of the `runtime` image were found by running `ldd` against each binary identifying each missing dependency. For your applications, this process will be simpler as you'll be building much fewer than the 130+ applications.
 
@@ -70,7 +70,7 @@ COPY --from=builder /usr/local/cuda-10.0/samples/ /samples
 WORKDIR /samples/bin/aarch64/linux/release/
 ```
 
-The final `l4t:32.2-jax-jetpack-4.2.1-samples` image adds 1.11GB of which 0.86GB is the sample binaries themselves:
+The final `l4t:32.2-jax-jetpack-4.2.1-samples` image adds `1.11GB` of which `0.86GB` is the sample binaries themselves:
 
 | Component | Size |
 |---|---|
@@ -81,7 +81,7 @@ The final `l4t:32.2-jax-jetpack-4.2.1-samples` image adds 1.11GB of which 0.86GB
 
 The `l4t:32.2-jax-jetpack-4.2.1-samples` has a layer for the external dependencies and will be cached should future updates to the sample binaries be required. This layering is by design with images. Large layers, and layers that change infrequently, come in first. Then the more volatile pieces are laid in on top. This gives us smaller updates to deployments.
 
-If you are not running the builds on your device, push the `l4t:32.2-jax-jetpack-4.2.1-samples` image to your container registry so that the device can pull down the images.
+If you are not running the builds on your device, push the `l4t:32.2-jax-jetpack-4.2.1-samples` image to your container registry so that the device can pull down the images, or take a look at [pushing images to devices](/2019/07/pushing-images-to-devices).
 
 # Running the Samples
 
@@ -89,7 +89,7 @@ From here we need a device for the first time (if you have been building the ima
 
 If running remotely, set the `DOCKER_HOST` variable in the `.env` file to proxy the run to the device: `DOCKER_HOST=ssh://<user>@<device>.local`.
 
-Note: You may need to log into your container registry on the device in order to pull the images.
+Note: You may need to log into your container registry on the device in order to pull the images if you haven't built on or pushed to the device.
 
 UI:
 
