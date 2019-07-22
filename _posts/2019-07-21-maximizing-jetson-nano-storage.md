@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Jetson - Maximizing Jetson Nano Storage"
-date: 2019-07-16 6:00
+title: "Jetson Containers - Maximizing Jetson Nano Dev Kit Storage"
+date: 2019-07-21 6:00
 published: false
 categories: jetson nano iot
 ---
@@ -42,7 +42,7 @@ With that configured, we can now use `Ctrl+Shift+B` which will drop down a build
 Terminal:
 
 ```bash
-~/jetson-containers$ make nano-dev-jetpack-4.2.1-deps
+~/jetson-containers$ make make 32.2-nano-dev-jetpack-4.2.1
 ```
 
 This will build the 32.2 driver pack, `base`, `runtime`, and `devel` images.
