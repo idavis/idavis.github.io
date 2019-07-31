@@ -2,7 +2,7 @@
 layout: post
 title: "Jetson Containers - Building DeepStream Images"
 date: 2019-07-31 12:00
-published: false
+published: true
 categories: jetson docker nvidia-docker nano tx2 xavier deepstream
 ---
 # Introduction
@@ -25,7 +25,7 @@ Additionally, NVIDIA has essentially forked runc and any Common Vulnerabilities 
 
 ## Quick Path
 
-Note: These next parts with the DeepStream `.deb` package [should be temporary](https://devtalk.nvidia.com/default/topic/1057580/jetson-nano/jetpack-4-2-1-l4t-r32-2-release-for-jetson-nano-jetson-tx1-tx2-and-jetson-agx-xavier/post/5367091/#5367091). NVIDIA just added DeepStream to JetPack 4.2.1 but we can't automate the download yet for a dependencies image.
+Note: These next parts with the DeepStream `.deb` package [should be temporary](https://devtalk.nvidia.com/default/topic/1057580/jetson-nano/jetpack-4-2-1-l4t-r32-2-release-for-jetson-nano-jetson-tx1-tx2-and-jetson-agx-xavier/post/5367091/#5367091). NVIDIA just added DeepStream to JetPack 4.2.1 but we can't automate the download yet for a dependencies image. Once this is done, the DeepStream 4.0 SDK will be available as part of the JetPack 4.2.1 `devel` images.
 
 Go to the [DeepStream SDK site](https://developer.nvidia.com/deepstream-sdk) or [DeepStream Downloads](https://developer.nvidia.com/deepstream-download) page and download the Jetson `.deb` file. You can save it to the `jetson-container` root directory or set the `DOCKER_CONTEXT` in your `.env` file to where you saved the file.
 
@@ -381,6 +381,8 @@ Try running one of the samples:
 - Nano: `deepstream-app -c configs/deepstream-app/source8_1080p_dec_infer-resnet_tracker_tiled_display_fp16_nano.txt`
 
 Enjoy the show.
+
+(Fun Note: This container runs on JetPack 4.2 (32.1) based hosts as the images are self-contained, so if you're waiting for a BSP to update to 32.2 and JetPack 4.2.1, you can still have some fun)
 
 [first post]: /2019/07/jetson-containers-introduction
 [creating the dependencies image]: /2019/07/maximizing-jetson-nano-storage#create-dependencies-image
