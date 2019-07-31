@@ -7,7 +7,7 @@ categories: jetson docker nano iot
 ---
 # Introduction
 
-If you haven't walked through the The [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first. The Nano developer kit is a little harder to work with.
+If you haven't walked through the [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first. The Nano developer kit is a little harder to work with.
 
 Given the lack of power in the Nano, I recommend building all of the dependencies for the Nano on the `x86_64` host and then copying the image to the device (covered in [pushing images to devices](/2019/07/pushing-images-to-devices) or through a container registry).
 

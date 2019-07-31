@@ -7,7 +7,7 @@ categories: jetson docker nvidia-docker nano iot xavier
 ---
 # Introduction
 
-If you haven't walked through the The [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first.
+If you haven't walked through the [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first.
 
 Compiling the CUDA samples for the Nano is really hard [compared to using the Xavier][] as it doesn't have nearly the resources required. We can get around this by compiling the container on the host.
 
