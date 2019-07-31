@@ -13,11 +13,13 @@ For our first application, we're going to build the JetPack samples and create a
 
 Note: We're going to start off with Xavier (jax) but you can also run Nano/TX2 builds here (just substitute the text jax for nano-dev/tx2). Both UI and Terminal options are listed for each step. For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
 
+Note: This uses a lot of RAM and CPU. You can lower the impact by changing `RUN make -j$($(nproc) - 1)` in `jetson-containers/docker/examples/samples/Dockerfile` to use a lower CPU count which will reduce RAM usage as well. Replace `$($(nproc) - 1)` with a smaller number. It calculated the number of processors available and subtracts one.
+
 # Building the Samples
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `build-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <build samples>`, select `build-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 
@@ -93,7 +95,7 @@ Note: You may need to log into your container registry on the device in order to
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `run-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <run samples>`, select `run-32.2-jax-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 

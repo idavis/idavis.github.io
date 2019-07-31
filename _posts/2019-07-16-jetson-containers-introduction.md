@@ -74,19 +74,23 @@ SDKM_DOWNLOADS=/home/<user>/Downloads/nvidia/somefolder
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2.1-deps-from-folder` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies from folder>` and hit `Enter`, select `32.2-jax-jetpack-4.2.1` and hit `Enter`.
 
 Terminal:
 
 ```bash
-make jax-jetpack-4.2.1-deps-from-folder
+make from-deps-folder-32.2-jax-jetpack-4.2.1
 ```
 
 ### Automated
 
- Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting. If using an nvidia partner account, also set `NV_LOGIN_TYPE=nvonline` as the default is `NV_LOGIN_TYPE=devzone`.
+Enter your NVIDIA developer/partner email address into the `.env` file using the `NV_USER` setting. If using an nvidia partner account, also set `NV_LOGIN_TYPE=nvonline` as the default is `NV_LOGIN_TYPE=devzone`.
 
- Note: This automation requires that you have the latest NVIDIA SDK Manager installed on your system. NVIDIA enforces this and the tool fails to run if the tool isn't up-to-date.
+Note:
+- This automation requires that you have the latest NVIDIA SDK Manager installed on your system. NVIDIA enforces this and the tool fails to run if the tool isn't up-to-date.
+- When building multiple deps images, you can log into the SDK Manager and choose to save credentials. This will be cached on the command line as well.
+- This will fail to run if the SDK Manager is already open.
+- If you enter an incorrect password, kill the build with `Ctrl+c` and run again. The SDK Manager doesn't set the exit code correctly for invalid passwords, so the tooling thinks everything is fine and will build an incorrect image.
 
 ```bash
 NV_USER=your@email.com
@@ -94,12 +98,12 @@ NV_USER=your@email.com
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `jax-jetpack-4.2.1-deps` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-jax-jetpack-4.2.1-deps` and hit `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make jax-jetpack-4.2.1-deps
+~/jetson-containers$ make deps-32.2-jax-jetpack-4.2.1
 ```
 
 This will construct a command line execution of the NVIDIA SDK Manager you have installed, and then run the image with your developer account email address. Eventually, you'll see something like:
@@ -111,7 +115,7 @@ Please enter password for user your@email.com:
 password:  
 ```
 
-Enter your account password and hit `Enter`. If you enter an incorrect password, kill the build with `Ctrl+c` and run again. The SDK Manager doesn't set the exit code correctly for invalid passwords, so the tooling thinks everything is fine and will build an incorrect image.
+Enter your account password and hit `Enter`.
 
 You'll now see the JetPack 4.2.1 Xavier files downloading:
 
@@ -141,7 +145,7 @@ Once the components are downloaded, the installer will trigger a `Docker` build 
 # Continuing from previous command execution
 docker build --squash \
              --build-arg VERSION_ID="bionic-20190612" \
-             -t l4t:jax-jetpack-4.2.1-deps \
+             -t l4t:32.2-jax-jetpack-4.2.1-deps \
              -f /home/<user>/jetson-containers/docker/jetpack/dependencies.Dockerfile \
              /tmp/GA_4.2.1/P2888
 Sending build context to Docker daemon  3.482GB
@@ -154,13 +158,13 @@ Step 3/4 : RUN mkdir /data
 Step 4/4 : COPY ./  ./data
  ---> b22598e1a164
 Successfully built b22598e1a164
-Successfully tagged l4t:jax-jetpack-4.2.1-deps
+Successfully tagged l4t:32.2-jax-jetpack-4.2.1-deps
 ```
 
 We can see the files installed into the image:
 
 ```
-~/jetson-containers$ docker run --rm -it l4t:jax-jetpack-4.2.1-deps ls -a /data
+~/jetson-containers$ docker run --rm -it l4t:32.2-jax-jetpack-4.2.1-deps ls -a /data
 .
 ..
 Jetson_Linux_R32.2.0_aarch64.tbz2
@@ -207,6 +211,8 @@ The images are pre-configured to leverage QEMU requiring only that you have QEMU
 ```bash
 sudo apt-get update && sudo apt-get install -y --no-install-recommends qemu-user-static binfmt-support
 ```
+
+This configures the host kernel which is shared by the docker containers. With this installed, we can add `qemu-user-static` into the image and the kernel will know to use it for the ARM binaries.
 
 #### Device
 
@@ -257,7 +263,7 @@ The JetPack 4.2 and newer base images in the `jetson-containers` project follow 
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <jetpack options>`, select `32.2-jax-jetpack-4.2.1`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <jetpack>`, select `32.2-jax-jetpack-4.2.1`, press `Enter`.
 
 Terminal:
 

@@ -17,7 +17,7 @@ Once you completed [creating the dependencies image][] and [creating the JetPack
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `build-32.2-nano-dev-jetpack-4.2.1-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <build samples>`, select `build-32.2-nano-dev-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 
@@ -54,7 +54,7 @@ Once completed, the samples image will be available on the device. Set the `DOCK
 
 UI:
 
-Press `Ctrl+Shift+B`, select `make <other options>`, select `run-32.2-nano-dev-jetpack-4.2.1-samples`, press `Enter`.
+Press `Ctrl+Shift+B`, select `make <run samples>`, select `run-32.2-nano-dev-jetpack-4.2.1-samples`, press `Enter`.
 
 Terminal:
 

@@ -25,12 +25,12 @@ NV_USER=your@email.com
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dep options>` and hit `Enter`, select `nano-dev-jetpack-4.2.1-deps` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1-deps` and hit `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make nano-dev-jetpack-4.2.1-deps
+~/jetson-containers$ make deps-32.2-nano-dev-jetpack-4.2.1
 ```
 
 Enter your password and wait for the image to be created. For more details, see the [first post][].
@@ -39,7 +39,7 @@ Enter your password and wait for the image to be created. For more details, see 
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack options>` and hit `Enter`, select `nano-dev-jetpack-4.2.1` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
 
 Terminal:
 
@@ -69,7 +69,7 @@ With that configured, we can now use `Ctrl+Shift+B` which will drop down a build
 Terminal:
 
 ``` bash
-make image-l4t-32.2-nano-dev-jetpack-4.2.1-base 
+make image-32.2-nano-dev-jetpack-4.2.1 
 ```
 
 This will build an image which contains the root file system and tools for flashing. The root file system is fully configured, has the `nvidia-docker` tooling installed, but does not have any of the main JetPack libraries we put those into our container images for the application.
@@ -78,7 +78,7 @@ Once complete you should see something similar to:
 
 ```bash
 Successfully built 2bc72a171644
-Successfully tagged l4t:l4t-32.2-nano-dev-jetpack-4.2.1-base
+Successfully tagged l4t:32.2-nano-dev-jetpack-4.2.1-image
 ```
 
 We can see the built image:
@@ -86,7 +86,7 @@ We can see the built image:
 ```bash
 ~/jetson-containers$ docker images
 REPOSITORY          TAG                                    SIZE
-l4t                 l4t-32.2-nano-dev-jetpack-4.2.1-base   5.8GB
+l4t                 32.2-nano-dev-jetpack-4.2.1-image      5.8GB
 ```
 
 ## Determine SD Card Size
@@ -131,7 +131,7 @@ To flash using the image we just built:
 Terminal:
 
 ```bash
-~/jetson-containers$ ./flash/flash.sh l4t:l4t-32.2-nano-dev-jetpack-4.2.1-base
+~/jetson-containers$ ./flash/flash.sh l4t:32.2-nano-dev-jetpack-4.2.1-image
 ```
 
 You'll see the drive listed at `15GB` but the `parted` and `Disks` sizes will be different.
@@ -170,7 +170,7 @@ Now that the device is ready, we can flash it:
 ```bash
 # -S : Rootfs size in bytes. KiB, MiB, GiB short hands are allowed
 # -e : Target device's eMMC size.
-~/jetson-containers$ ./flash/flash.sh l4t:l4t-32.2-nano-dev-jetpack-4.2.1-base -S 121934MiB -e 121942MiB
+~/jetson-containers$ ./flash/flash.sh l4t:32.2-nano-dev-jetpack-4.2.1-image -S 121934MiB -e 121942MiB
 ```
 
 The device should reboot automatically once flashed. Follow prompts on the device to accept the license terms and configure the environment. You can now use all of the space on your MicroSD card on the Jetson Nano Dev Kit.
