@@ -98,7 +98,7 @@ NV_USER=your@email.com
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-jax-jetpack-4.2.1-deps` and hit `Enter`.
+With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-jax-jetpack-4.2.1` and hit `Enter`.
 
 Terminal:
 
