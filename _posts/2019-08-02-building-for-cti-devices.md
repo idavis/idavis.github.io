@@ -56,7 +56,7 @@ If you just want the commands to flash an Orbitty device with the v125 BSP:
 ~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-v125-orbitty-image
 ```
 
-No using an Orbitty? Replace `orbitty` with your device and module:
+No using an Orbitty? Replace `orbitty` with your device and module, and chance `125` the the appropriate BSP version:
 
 - Xaver
   - rogue, rogue-imx274-2cam
