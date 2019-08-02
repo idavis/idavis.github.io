@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Jetson Containers - Building for CTI Devices"
-date: 2019-08-01 12:00
+date: 2019-08-02 12:00
 published: false
 categories: jetson docker nvidia-docker tx1 tx2 tx2i xavier cti
 ---
@@ -9,7 +9,7 @@ categories: jetson docker nvidia-docker tx1 tx2 tx2i xavier cti
 
 If you haven't walked through the [first post][] covering an introduction to Jetson containers, I'd recommend looking at it first.
 
-Working with the NVDIDIA develpment kits is a great way to get started building on the Jetson platform. When you try to build a real device, it gets much more complicated. This post covers a thin slice of that building a set of container images which will hold our root file system and everything needed to set up our device. Then we'll use that image to flash that device.
+Working with the NVDIDIA development kits is a great way to get started building on the Jetson platform. When you try to build a real device, it gets much more complicated. This post covers a thin slice of that building a set of container images which will hold our root file system and everything needed to set up our device. Then we'll use that image to flash that device.
 
 Both UI and Terminal options are listed for each step. For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
 
@@ -17,9 +17,7 @@ Both UI and Terminal options are listed for each step. For the UI commands it is
 
 ## Carrier Boards
 
-The Jetson devices (Xavier, Nano, TX1, TX2, etc) are embedded system-on-modules (SoMs) requiring carrier boards to provide input/output, peripheral connectors, and power connections. NVIDIA publishes specs for their development kits (which are carrier board + SoM) and guidance for manufacturers that want to create custom carrier boards. Each board is allowed to customize its capabilities for specific purposes. As manufactures design these boards, they need a way to tell the module what they've done. This is achieved through board support packages.
-
-## Board Support Packages (BSPs)
+The Jetson devices (Xavier, Nano, TX1, TX2, etc) are embedded system-on-modules (SoMs) requiring carrier boards to provide input/output, peripheral connectors, and power. NVIDIA publishes specs for their development kits (which are carrier board + SoM) and guidance for manufacturers that want to create custom carrier boards. Each manufacturer is allowed to customize board capabilities for specific purposes. As manufactures design these boards, they need a way to tell the module what they've done. This is achieved through board support packages (BSPs).
 
 NVIDIA provides default [BSPs][] for their development kits which contain the drivers, kernel, kernel headers, [device trees][], flashing utilities, bootloader, operating system (OS) configuration files, and scripts.
 
@@ -34,6 +32,8 @@ Carrier board manufacturers build on top of NVIDIA's BSP adding in their own dri
  - This will call `Linux_For_Tegra/apply_binaries.sh` which configures the rootfs folder with the BSP
 5. Flash the device with the configured root file system
 
+There are other possibilities such as creating raw or sparse images which can be flashed with tools such as [Etcher](https://www.balena.io/etcher/).
+
 # Getting Started
 
 One manufacturer of NVIDIA carrier boards is Connect Tech Inc (CTI). They have a variety of carrier boards for TX1, TX2, TX2i, and Xavier. We can create a simple container image which can be used to flash the device repeatedly setting up the base of a provisioning process.
@@ -47,7 +47,7 @@ To set this up we need to:
 
 ### TLDR
 
-If you just want the commands to flash an Orbitty with the v125 BSP:
+If you just want the commands to flash an Orbitty device with the v125 BSP:
 
 ```bash
 ~/jetson-containers/$ make cti-32.1-tx2-125-deps
@@ -92,7 +92,7 @@ Following the [automated][] example, enter your NVIDIA developer/partner email a
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.1-tx2-jetpack-4.2` and hit `Enter`.
+Press `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.1-tx2-jetpack-4.2` and hit `Enter`.
 
 Terminal:
 
@@ -100,15 +100,15 @@ Terminal:
 ~/jetson-containers$ make deps-32.1-tx2-jetpack-4.2
 ```
 
-Once completed you'll have a JetPack 4.2 dependencies image ready y for the next step: `l4t:32.1-tx2-jetpack-4.2-deps`.
+Once completed you'll have a JetPack 4.2 dependencies image ready for the next step: `l4t:32.1-tx2-jetpack-4.2-deps`.
 
 ## Building the CTI flashing image
 
-Here we're going to break down the `cti.Dockerfile` used to build the flashing image. All of this work is already done in the repo, but this will give details on what is going on underneath.
+Here we're going to break down the CTI `Dockerfile` used to build the flashing image. All of this work is already done in the repository, but this will give details on what is going on underneath.
 
 ### How it Works
 
-We're laying in the root file system and BSP, so we import them as named pieces in [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build):
+We're laying in the root filesystem and BSP, so we import them as named pieces in [multi-stage builds](https://docs.docker.com/develop/develop-images/multistage-build):
 
 ```dockerfile
 ARG VERSION_ID
@@ -121,7 +121,7 @@ ARG BSP_DEPENDENCIES_IMAGE
 FROM ${BSP_DEPENDENCIES_IMAGE} as bsp-dependencies
 ```
 
-Normally we layer in qemu here to allow us to build these images on `x86_64` hosts, but the flashing images must always be built on the `x86_64` host. Here we do it so that we can chroot and run other tools in the root filesystem for custom configuration.
+Normally we layer in `qemu` here to allow us to build these images on `x86_64` hosts, but the flashing images must always be built on the `x86_64` host. Here we do it so that we can chroot and run other tools in the root filesystem for custom configuration.
 
 ```dockerfile
 ARG VERSION_ID
@@ -159,7 +159,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 ```
 
-Now we take the driver pack (NVIDIA BSP) and extract it into the container an clean up after. Then we extract the root file system from the JetPack dependencies folder into the BSP's rootfs folder. We can substitute our own root filesystem here to fully customize the device, but that will be covered in a different post.
+Now we take the driver pack (NVIDIA BSP) and extract it into the container an clean up after. Then we extract the root filesystem from the JetPack dependencies folder into the BSP's `rootfs` folder. We can substitute our own root filesystem here to fully customize the device, but that will be covered in a different post.
 
 ```dockerfile
 ARG DRIVER_PACK
@@ -183,7 +183,7 @@ RUN echo "${ROOT_FS_SHA} *./${ROOT_FS}" | sha1sum -c --strict - && \
 WORKDIR /Linux_for_Tegra
 ```
 
-Now we can load in our CTI BSP and let it configure the rootfs folder. We must use sudo here despite being `root` as the NVIDIA scripts check for and require sudo.
+Now we can load in our CTI BSP and let it configure the `rootfs` folder. We must use `sudo` here despite being `root` as the NVIDIA scripts check for and require `sudo`.
 
 ```dockerfile
 ARG BSP
@@ -197,7 +197,7 @@ RUN echo "${BSP_SHA} *./${BSP}" | sha1sum -c --strict - && \
     sudo ./install.sh
 ```
 
-At this point the rootfs is fully configured. We now generate a helper script which sets up the board and rootfs target device while passing all command line arguments to the underlying `flash.sh`.
+At this point the root filesystem is fully configured. We now generate a helper script which sets up the board and `rootfs` target device while passing all command line arguments to the underlying `flash.sh`.
 
 ```dockerfile
 WORKDIR /Linux_for_Tegra
@@ -231,7 +231,7 @@ Once built, you'll have the container image `l4t:cti-32.1-v125-orbitty-image` re
 
 ## Flashing the Device
 
-Put the device into recovery mode and run
+Put the device into recovery mode and run:
 
 ```bash
 ~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-v125-orbitty-image
@@ -249,7 +249,7 @@ For detailed guidance and walk through, refer to [Building the Containers][].
 
 ## Driver Pack
 
-We're going to make the driver pack now which has a small root file system with the NVIDIA L4T driver pack applied. This image sets up the libraries needed for everything else to run. We're using a much smaller root filesystem (~`60MB`).
+We're going to make the driver pack now which has a small root filesystem with the NVIDIA L4T driver pack applied. This image sets up the libraries needed for everything else to run. We're using a much smaller root filesystem (~`60MB`).
 
 UI:
 
@@ -293,9 +293,9 @@ arm64v8/ubuntu              bionic-20190307                80.4MB
 
 ## Getting the Images Onto the Device
 
-Push these images to your container registry so that they can be used by your CI pipeline and deployments or see the [pushing images to devices][] post for a shortcut.
+Push these images to your container registry so that they can be used by your CI pipeline and deployments, or see the [pushing images to devices][] post for a shortcut.
 
-There is nothing CTI specific about what we run on the device. All of the device specific work was handled in the rootfs flashing leaving us free to build generic containerized workloads on the device.
+There is nothing CTI specific about what we run on the device. All of the device specific work was handled in the `rootfs` flashing leaving us free to build generic containerized workloads on the device.
 
 
 [first post]: /2019/07/jetson-containers-introduction
