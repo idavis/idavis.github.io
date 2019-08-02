@@ -2,7 +2,7 @@
 layout: post
 title: "Jetson Containers - Building for CTI Devices"
 date: 2019-08-02 12:00
-published: false
+published: true
 categories: jetson docker nvidia-docker tx1 tx2 tx2i xavier cti
 ---
 # Introduction
