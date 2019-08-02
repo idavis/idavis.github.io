@@ -58,7 +58,7 @@ If you just want the commands to flash an Orbitty device with the v125 BSP:
 
 No using an Orbitty? Replace `orbitty` with your device and module, and chance `125` the the appropriate BSP version:
 
-- Xaver
+- Xavier
   - rogue, rogue-imx274-2cam
   - mimic-base
 - TX2/TX2i
