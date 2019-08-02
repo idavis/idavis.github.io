@@ -25,7 +25,7 @@ NV_USER=your@email.com
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1-deps` and hit `Enter`.
+Press `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack dependencies>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1-deps` and hit `Enter`.
 
 Terminal:
 
@@ -39,7 +39,7 @@ Enter your password and wait for the image to be created. For more details, see 
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
+Press `Ctrl+Shift+B` which will drop down a build task list. Select `make <jetpack>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
 
 Terminal:
 
@@ -64,7 +64,7 @@ To create a reproducible image for flashing, we're going to create a container w
 
 UI:
 
-With that configured, we can now use `Ctrl+Shift+B` which will drop down a build task list. Select `make <imaging options>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
+Press `Ctrl+Shift+B` which will drop down a build task list. Select `make <imaging options>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
 
 Terminal:
 
