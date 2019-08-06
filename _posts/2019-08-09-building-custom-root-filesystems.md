@@ -3,7 +3,7 @@ layout: post
 title: "Jetson Containers - Building Custom Root Filesystems"
 date: 2019-08-09 12:00
 published: false
-categories: jetson nano tx1 tx2 tx2i xavier chroot debootstrap
+categories: jetson chroot debootstrap
 ---
 # Introduction
 
@@ -34,7 +34,7 @@ sudo apt install qemu qemu-user-static binfmt-support debootstrap
 sudo dpkg-reconfigure locales
 ```
 
-The `qemu-debootstrap` application was installed by `qemu-user-static` and saves us from having to run `debootstrap --second-stage` when building foreign architecture roots. 
+The `qemu-debootstrap` application was installed by `qemu-user-static` and automatically runs `chroot ./rootfs /debootstrap/debootstrap --second-stage` when building foreign architecture roots. 
 
 ```bash
 mkdir rootfs
@@ -63,14 +63,6 @@ Like the container images, we are still sharing the host kernel and `binfmt-supp
 ```bash
 cd rootfs
 sudo cp /usr/bin/qemu-aarch64-static usr/bin/
-```
-
-Next we have to set up the the `resolv.conf` to get DNS working and mount some other locations from the host into the new root.
-```
-sudo cp /etc/resolv.conf etc/resolv.conf.host
-sudo cp etc/resolv.conf etc/resolv.conf.saved
-sudo mv etc/resolv.conf.host etc/resolv.conf
-
 sudo mount --bind /dev/ dev/
 sudo mount --bind /sys/ sys/
 sudo mount --bind /proc/ proc/
@@ -88,13 +80,8 @@ Here we're going to add the universe
 
 ```bash
 echo "deb http://ports.ubuntu.com/ubuntu-ports $(lsb_release -sc) universe" >> /etc/apt/sources.list
-```
-
-Networking:
-
-```bash
 apt update
-apt install resolvconf
+apt install network-manager
 ```
 
 ```bash
@@ -188,8 +175,6 @@ exit
 We now need to restore the `resolv.conf` files and `unmount` the paths needed for `chroot`.
 
 ```bash
-sudo rm etc/resolv.conf
-sudo mv etc/resolv.conf.saved etc/resolv.conf
 sudo umount ./proc
 sudo umount ./sys
 sudo umount ./dev
