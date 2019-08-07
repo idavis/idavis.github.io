@@ -5,6 +5,17 @@ date: 2019-08-08 12:00
 published: false
 categories: jetson chroot debootstrap
 ---
+# Prologue
+
+This post is part of a series covering the NVIDIA Jetson platform.  It may help to take a peek through the other posts beforehand.
+
+- [Introduction](/2019/07/jetson-containers-introduction)
+- [Building the Samples](/2019/07/jetson-containers-samples)
+- [Maximizing Jetson Nano Dev Kit Storage](/2019/07/maximizing-jetson-nano-storage)
+- [Pushing Images to Devices](/2019/07/pushing-images-to-devices)
+- [Building DeepStream Images](/2019/07/building-deepstream-images)
+- [Building for CTI Devices](/2019/08/building-for-cti-devices)
+
 # Introduction
 
 The sample file system provided by NVIDIA provides a quick path to getting started with the Jetson platform. As one begins to develop for the platform, they should be looking at building a custom root filesystem for their deployments. While not exhaustive, there are several reasons to do this:
@@ -24,6 +35,8 @@ To this end we can review several options for building out these root filesystem
 3. [Ubuntu Releases](#ubuntu-releases)
 
 # Setting up the Base
+
+The work done is performed on an `x86_64` host machine building images for the foreign `arm64/aarch64` architecture.
 
 ## NVIDIA Sample
 
