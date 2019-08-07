@@ -15,7 +15,7 @@ The sample file system provided by NVIDIA provides a quick path to getting start
 - Component compatibility
 - Small host updates
 
-It is key to remember the distinction between the board support packages (BSPs) applied to the root filesystem vs the root filesystem itself. The root filesystem is the OS base on which the BSP is applied. Any applications, invariant configuration, and geral OS setup are handled here. Further configuration can be done at a later point applying certificates, credentials, and other device specific configuration. This later configuration can also be done via automation tools such as Ansible, Terraform, Puppet, or PowerShell DSC.
+It is key to remember the distinction between the board support packages (BSPs) applied to the root filesystem vs the root filesystem itself. The root filesystem is the OS base on which the BSP is applied. Any applications, invariant configuration, and general OS setup are handled here. Further configuration can be done at a later point applying certificates, credentials, and other device specific configuration. This later configuration can also be done via automation tools such as Ansible, Terraform, Puppet, or PowerShell DSC.
 
 To this end we can review several options for building out these root filesystems:
 
@@ -127,7 +127,7 @@ If you want to configure scripts that are automatically copied over to a new use
 # Modify .bash_logout, .bashrc, and .profile in /etc/skel
 ```
 
-When using the cdimage release, `sudo` is not installed, but we'lll need it to add the user to the `sudo` group for elevation of privileges. This can be skipped if you want to ensure the user isn't allowed to elevate.
+When using the cdimage release, `sudo` is not installed, but we'll need it to add the user to the `sudo` group for elevation of privileges. This can be skipped if you want to ensure the user isn't allowed to elevate.
 
 ```bash
 #cdimage-release-only:
