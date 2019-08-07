@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Jetson Containers - Building Custom Root Filesystems"
-date: 2019-08-09 12:00
+date: 2019-08-08 12:00
 published: false
 categories: jetson chroot debootstrap
 ---
@@ -162,6 +162,8 @@ Install the dependencies:
 ```bash
 apt update
 apt install ca-certificates gpg curl -y --no-install-recommends
+# needed for modprobe by moby-engine
+apt install kmod
 ```
 
 Install the apt debian archive:
@@ -217,6 +219,23 @@ Enter your container logging settings. This can also be done on a module by modu
 }
 ```
 
+### Installing SSH
+
+1. Bake it is as part of these steps
+2. Install it after the fact
+
+Either way, the steps are simple:
+
+```bash
+$ apt install openssh-server --no-install-recommends
+$ vim.tiny /etc/ssh/ssdh_config
+# Find
+#PasswordAuthentication yes
+# uncomment it, save, exit
+```
+
+(If installing after the fact: `sudo /etc/init.d/ssh restart`)
+
 ## Wrapping It Up
 
 Once `rootfs` customization is complete, `exit` the `chroot`.
@@ -255,7 +274,122 @@ Finally, with everything configured, cleaned up, and ready, we can create the ar
 sudo tar -jcpf ../ubuntu_bionic_iot-edge_aarch64.tbz2 .
 ```
 
+# Flashing a Device
+
+Note: For the UI commands it is assumed that the [jetson-containers](https://github.com/idavis/jetson-containers) repository is open in VS Code.
+
+## Creating the `FS_DEPENDENCIES_IMAGE`
+
+Once you've archived the rootfs, we need to create the `ROOT_FS_ARCHIVE` in your `.env` to the location of your archive, for example: `ROOT_FS_ARCHIVE=/home/<user>/dev/archives/ubuntu_bionic_iot-edge_aarch64.tbz2`. Be careful in that this folder is used as the build context and it all will be loaded into the build (so don't use `/tmp`).
+
+UI:
+
+Press `Ctrl+Shift+B`, select `make <rootfs from file>`, enter the name of the final container image you'd like, such as `ubuntu_bionic_iot-edge_aarch64`, press `Enter`.
+
+Terminal:
+
+```bash
+~/jetson-containers$ make from-file-rootfs-ubuntu_bionic_iot-edge_aarch64
+```
+
+One the build is complete you should see:
+
+```bash
+docker build  -f "rootfs-from-file.Dockerfile" -t "l4t:ubuntu_bionic_iot-edge_aarch64-rootfs" \
+    --build-arg ROOT_FS=ubuntu_bionic_iot-edge_aarch64.tbz2 \
+    --build-arg ROOT_FS_SHA=8c0a025618fcedabed62e41c238ba49a0c34cf5e \
+    --build-arg VERSION_ID=bionic-20190307 \
+    .
+# ...
+Successfully tagged l4t:ubuntu_bionic_iot-edge_aarch64-rootfs
+```
+
+In addition, there will be a new file named after your build `flash/rootfs/ubuntu_bionic_iot-edge_aarch64.tbz2.conf` which contains the environmental information you need to use it in the `.env` during a build:
+
+```bash
+ROOT_FS=ubuntu_bionic_iot-edge_aarch64.tbz2
+ROOT_FS_SHA=8c0a025618fcedabed62e41c238ba49a0c34cf5e
+FS_DEPENDENCIES_IMAGE=l4t:ubuntu_bionic_iot-edge_aarch64-rootfs
+```
+
+## Configuring the Build
+
+Open your `.env` file and copy the contents of the `.conf` file created above. The `FS_DEPENDENCIES_IMAGE` overrides the default file system image used when building the flashing container. `ROOT_FS` tells the build which file to pull from the image and it will be checked against the `ROOT_FS_SHA`.
+
+With this set, we are ready to build the flashing container.
+
+## Building the Flashing Image
+
+Note: We're going to start off with nano (nano-dev) but you can also run Nano/TX2 builds here (just substitute the text nano-dev for jax/tx2).
+
+UI:
+
+Press `Ctrl+Shift+B` which will drop down a build task list. Select `make <imaging options>` and hit `Enter`, select `32.2-nano-dev-jetpack-4.2.1` and hit `Enter`.
+
+Terminal:
+
+```bash
+make image-32.2-nano-dev-jetpack-4.2.1
+```
+
+Which will run the build with our new root filesystem in place:
+
+```bash
+docker build --squash -f /home/<user>/jetson-containers/flash/l4t/32.2/default.Dockerfile -t l4t:32.2-nano-dev-jetpack-4.2.1-image \
+    --build-arg DEPENDENCIES_IMAGE=l4t:32.2-nano-dev-jetpack-4.2.1-deps \
+    --build-arg DRIVER_PACK=Jetson-210_Linux_R32.2.0_aarch64.tbz2 \
+    --build-arg DRIVER_PACK_SHA=2d60f126a3ecf55269c486b4b0ca684448f2ca7d \
+    --build-arg FS_DEPENDENCIES_IMAGE=l4t:ubuntu-bionic-iot-edge-aarch64-rootfs \
+    --build-arg ROOT_FS=ubuntu_bionic_iot-edge_aarch64.tbz2 \
+    --build-arg ROOT_FS_SHA=8c0a025618fcedabed62e41c238ba49a0c34cf5e \
+    --build-arg BSP_DEPENDENCIES_IMAGE= \
+    --build-arg BSP= \
+    --build-arg BSP_SHA= \
+    --build-arg TARGET_BOARD=jetson-nano-qspi-sd \
+    --build-arg ROOT_DEVICE=mmcblk0p1 \
+    --build-arg VERSION_ID=bionic-20190307 \
+    .
+#...
+Successfully tagged l4t:32.2-nano-dev-jetpack-4.2.1-image
+```
+
+We can see the built image which is nice and small compared to the default:
+
+```bash
+~/jetson-containers$ docker images
+REPOSITORY          TAG                                    SIZE
+l4t                 32.2-nano-dev-jetpack-4.2.1-image      1.32GB
+```
+
+## Flashing the Device
+
+Set your jumpers for flashing, cycle the power or reboot the device. Ensure that it shows up when you run `lsusb` (there will be a device with `Nvidia Corp` in the line):
+
+```bash
+~/jetson-containers$ lsusb
+#...
+Bus 001 Device 069: ID 0955:7020 NVidia Corp. 
+#...
+```
+
+Now that the device is ready, we can flash it (we're assuming production module size of `16GB/14GiB` and not overriding the rootfs size):
+
+```bash
+~/jetson-containers$ ./flash/flash.sh l4t:32.2-nano-dev-jetpack-4.2.1-image
+```
+
+The device should reboot automatically once flashed. If you remember your passwords from above, you should now be able to log in and use the device.
+
+## Configuring IoT Edge
+
+SSH into the device (or type this in manually :) )
 
 
+```bash
+ssh nvuser@
+nvuser@$ sudo vim.tiny /etc/iotedge/config.yaml
+# set the connection string
+nvuser@$ sudo /etc/init.d/iotedge restart
+```
 
 [Unity]: https://en.wikipedia.org/wiki/Unity_(user_interface)
