@@ -122,6 +122,9 @@ apt install network-manager -y --no-install-recommends
 
 If you want to add other feeds you can add them like this `echo "deb http://ports.ubuntu.com/ubuntu-ports $(lsb_release -sc) universe" >> /etc/apt/sources.list`. Ideally you'll create your own private [debian repository](https://wiki.debian.org/DebianRepository/Setup).
 
+<!--
+TODO: Revisit this. NVIDIA overwrites the files when config.tbz2 is extracted during BSP application.
+
 Now we need to give our little IoT alien device a name `nano-nano`:
 
 ```bash
@@ -131,6 +134,8 @@ echo "127.0.0.1    localhost" > /etc/hosts
 echo "::1    localhost" > /etc/hosts
 echo "127.0.1.1    nano-nano" >> /etc/hosts
 ```
+
+-->
 
 If you want to configure scripts that are automatically copied over to a new user's home directory, you can leverage [/etc/skel](http://www.linfo.org/etc_skel.html) here to configure them. When producing your final application images, you should be running them with a new restricted user. Configuring the scripts in `/etc/skel` will let this automatically happen for any created users.
 
@@ -405,6 +410,7 @@ SSH into the device (or type this in manually :) )
 ssh nvuser@
 nvuser@$ sudo vim.tiny /etc/iotedge/config.yaml
 # set the connection string
+# set the hostname to match the device
 nvuser@$ sudo /etc/init.d/iotedge restart
 ```
 
