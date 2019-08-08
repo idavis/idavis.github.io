@@ -46,7 +46,7 @@ This rootfs should only be used for experimentation and won't be covered from he
 
 ## Debootstrap
 
-[debootstrap](https://wiki.debian.org/Debootstrap) is a systems tool which installs a Debian based system into a subdirectory on an already existing Debian-based OS. This allows us to create a base (minimal) distribution from which to grow our `rootfs`. Since we are building for a foreign architecture, we also need some supporting utilities.
+[debootstrap](https://wiki.debian.org/Debootstrap) is a system tool which installs a Debian based system into a subdirectory on an already existing Debian-based OS. This allows us to create a base (minimal) distribution from which to grow our `rootfs`. Since we are building for a foreign architecture, we also need some supporting utilities.
 
 ```bash
 # Install dependencies
@@ -88,7 +88,7 @@ With `debootstrap` (or release archive) having populated a minimal os installati
 
 Like the container images, we are still sharing the host kernel and `binfmt-support` is telling us that that we should be using `/usr/bin/qemu-aarch64-static` to interpret arm64 instructions. So we'll copy it from the host OS into the `./rootfs` folders tree. Additionally we need to mount some folders into the new root.
 
-Note: The release 
+Note: If you have chosen to use the cdimage releases we also have to copy around the `resolv.conf` in order to configure DNS resolution while we're in the `chroot`.
 
 ```bash
 cd rootfs
@@ -102,8 +102,6 @@ sudo cp /etc/resolv.conf etc/resolv.conf.host
 sudo mv etc/resolv.conf etc/resolv.conf.saved
 sudo mv etc/resolv.conf.host etc/resolv.conf
 ```
-
-If you have chosen to use the cdimage releases we also have to copy around the `resolv.conf` in order to configure DNS resolution while we're in the chroot.
 
 Now we can enter the `chroot` running `bash`.
 
@@ -212,6 +210,8 @@ Configure Moby:
 ```bash
 #cdimage-release-only:
 apt update 
+# You can install any editor you're comfortable with. The vim.tiny package
+# is included when using debootstrap.
 apt install vim.tiny -y
 ```
 
@@ -301,7 +301,7 @@ Note: For the UI commands it is assumed that the [jetson-containers](https://git
 
 ## Creating the `FS_DEPENDENCIES_IMAGE`
 
-Once you've archived the rootfs, we need to create the `ROOT_FS_ARCHIVE` in your `.env` to the location of your archive, for example: `ROOT_FS_ARCHIVE=/home/<user>/dev/archives/ubuntu_bionic_iot-edge_aarch64.tbz2`. Be careful in that this folder is used as the build context and it all will be loaded into the build (so don't use `/tmp`).
+Once you've archived the `rootfs`, we need to create the `ROOT_FS_ARCHIVE` in your `.env` to the location of your archive, for example: `ROOT_FS_ARCHIVE=/home/<user>/dev/archives/ubuntu_bionic_iot-edge_aarch64.tbz2`. Be careful in that this folder is used as the build context and it all will be loaded into the build (so don't use `/tmp`).
 
 UI:
 
@@ -313,7 +313,7 @@ Terminal:
 ~/jetson-containers$ make from-file-rootfs-ubuntu_bionic_iot-edge_aarch64
 ```
 
-One the build is complete you should see:
+Once the build is complete you should see:
 
 ```bash
 docker build  -f "rootfs-from-file.Dockerfile" -t "l4t:ubuntu_bionic_iot-edge_aarch64-rootfs" \
@@ -341,7 +341,7 @@ With this set, we are ready to build the flashing container.
 
 ## Building the Flashing Image
 
-Note: We're going to start off with nano (nano-dev) but you can also run Nano/TX2 builds here (just substitute the text nano-dev for jax/tx2).
+Note: We're going to start off with nano (nano-dev) but you can also run Xavier/TX2 builds here (just substitute the text nano-dev for jax/tx2).
 
 UI:
 
