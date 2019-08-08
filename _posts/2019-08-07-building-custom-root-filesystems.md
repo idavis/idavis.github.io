@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Jetson Containers - Building Custom Root Filesystems"
-date: 2019-08-08 12:00
-published: false
+date: 2019-08-07 18:00
+published: true
 categories: jetson chroot debootstrap
 ---
 # Prologue
