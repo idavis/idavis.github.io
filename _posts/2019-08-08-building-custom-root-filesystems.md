@@ -117,7 +117,7 @@ The [network-manager](https://help.ubuntu.com/community/NetworkManager) package 
 
 ```bash
 apt update
-apt install network-manager --no-install-recommends
+apt install network-manager -y --no-install-recommends
 ```
 
 If you want to add other feeds you can add them like this `echo "deb http://ports.ubuntu.com/ubuntu-ports $(lsb_release -sc) universe" >> /etc/apt/sources.list`. Ideally you'll create your own private [debian repository](https://wiki.debian.org/DebianRepository/Setup).
@@ -126,10 +126,10 @@ Now we need to give our little IoT alien device a name `nano-nano`:
 
 ```bash
 # Set up our devices name
-echo nano-nano > /etc/hostname
-echo 127.0.0.1	localhost > /etc/hosts
-echo ::1	localhost > /etc/hosts
-echo 127.0.1.1	nano-nano >> /etc/hosts
+echo "nano-nano" > /etc/hostname
+echo "127.0.0.1    localhost" > /etc/hosts
+echo "::1    localhost" > /etc/hosts
+echo "127.0.1.1    nano-nano" >> /etc/hosts
 ```
 
 If you want to configure scripts that are automatically copied over to a new user's home directory, you can leverage [/etc/skel](http://www.linfo.org/etc_skel.html) here to configure them. When producing your final application images, you should be running them with a new restricted user. Configuring the scripts in `/etc/skel` will let this automatically happen for any created users.
@@ -175,6 +175,7 @@ Install the dependencies:
 ```bash
 apt update
 apt install ca-certificates gpg curl -y --no-install-recommends
+#cdimage-release-only:
 # needed for modprobe by moby-engine
 apt install kmod
 ```
@@ -234,14 +235,15 @@ Enter your container logging settings. This can also be done on a module by modu
 
 ### Installing SSH
 
-1. Bake it is as part of these steps
+1. Install it in the root image here
 2. Install it after the fact
+3. Skip SSH and use a USB to Serial Console to talk to the device (story for another day)
 
 Either way, the steps are simple:
 
 ```bash
-$ apt install openssh-server --no-install-recommends
-$ vim.tiny /etc/ssh/ssdh_config
+$ apt install openssh-server -y --no-install-recommends
+$ vim.tiny /etc/ssh/sshd_config
 # Find
 #PasswordAuthentication yes
 # uncomment it, save, exit
@@ -264,6 +266,7 @@ sudo umount ./proc
 sudo umount ./sys
 sudo umount ./dev
 sudo rm usr/bin/qemu-aarch64-static
+
 
 #cdimage-release-only:
 sudo rm etc/resolv.conf
