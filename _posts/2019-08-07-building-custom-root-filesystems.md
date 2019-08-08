@@ -120,21 +120,6 @@ apt install network-manager -y --no-install-recommends
 
 If you want to add other feeds you can add them like this `echo "deb http://ports.ubuntu.com/ubuntu-ports $(lsb_release -sc) universe" >> /etc/apt/sources.list`. Ideally you'll create your own private [debian repository](https://wiki.debian.org/DebianRepository/Setup).
 
-<!--
-TODO: Revisit this. NVIDIA overwrites the files when config.tbz2 is extracted during BSP application.
-
-Now we need to give our little IoT alien device a name `nano-nano`:
-
-```bash
-# Set up our devices name
-echo "nano-nano" > /etc/hostname
-echo "127.0.0.1    localhost" > /etc/hosts
-echo "::1    localhost" > /etc/hosts
-echo "127.0.1.1    nano-nano" >> /etc/hosts
-```
-
--->
-
 If you want to configure scripts that are automatically copied over to a new user's home directory, you can leverage [/etc/skel](http://www.linfo.org/etc_skel.html) here to configure them. When producing your final application images, you should be running them with a new restricted user. Configuring the scripts in `/etc/skel` will let this automatically happen for any created users.
 
 ### `/etc/skel`
@@ -209,7 +194,7 @@ Configure Moby:
 
 ```bash
 #cdimage-release-only:
-apt update 
+apt update
 # You can install any editor you're comfortable with. The vim.tiny package
 # is included when using debootstrap.
 apt install vim.tiny -y
@@ -405,13 +390,36 @@ The device should reboot automatically once flashed. If you remember your passwo
 
 SSH into the device (or type this in manually :) )
 
+The NVIDIA BSP overwrites the `/etc/hosts` and `/etc/hostname` when it is applied (via `config.tbz2`). The device's default name is `tegra-ubuntu`. Let's change this and give our little alien IoT device a name, `nano-nano` (or any other name you wish). You'll eventually set this through further automation when flashing the device.
 
 ```bash
-ssh nvuser@
-nvuser@$ sudo vim.tiny /etc/iotedge/config.yaml
+hostnamectl set-hostname nano-nano
+```
+
+Nex, open your `/etc/hosts` and replace `tegra-ubuntu` with your new host name.
+
+```bash
+sudo vim.tiny /etc/hosts
+```
+
+Once completed, your `/etc/hosts` file should look like this:
+
+```
+127.0.0.1	localhost
+127.0.1.1	nano-nano
+```
+
+Next, we need to update the hostname configured for IoT Edge:
+
+```bash
+$ sudo vim.tiny /etc/iotedge/config.yaml
 # set the connection string
 # set the hostname to match the device
-nvuser@$ sudo /etc/init.d/iotedge restart
+$ sudo /etc/init.d/iotedge restart
 ```
+
+Your device should now be available by name and automatically download its configured deployment after restarting the service.
+
+You can also [push](/2019/07/pushing-images-to-devices) the [samples](/2019/07/jetson-containers-samples) to the device to test your new base image.
 
 [Unity]: https://en.wikipedia.org/wiki/Unity_(user_interface)
