@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Jetson Containers - Building Custom Desktop Root Filesystems"
+title: "Jetson Containers - Building Root Filesystems With Desktop UI Support"
 date: 2019-08-14 18:00
 published: false
 categories: jetson chroot debootstrap
