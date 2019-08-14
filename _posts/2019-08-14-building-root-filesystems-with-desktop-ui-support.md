@@ -2,7 +2,7 @@
 layout: post
 title: "Jetson Containers - Building Root Filesystems With Desktop UI Support"
 date: 2019-08-14 18:00
-published: false
+published: true
 categories: jetson chroot debootstrap
 ---
 # Prologue
@@ -21,7 +21,7 @@ This post is part of a series covering the NVIDIA Jetson platform.  It may help 
 
 This post builds off of [Building Custom Root Filesystems](/2019/08/building-custom-root-filesystems) directly and it is highly recommended that you review that post first as it covers background information that isn't reiterated here.
 
-To this end we can review several options for building out these root filesystems:
+To this end we have only a few steps needed to create our root filesystem:
 
 1. [Debootstrap](#debootstrap)
 2. [Configuration](#configuration)
@@ -70,11 +70,15 @@ sudo chroot . /bin/bash
 
 ## Installing Ubuntu Desktop
 
+In setting up the desktop environment we need to set up our `locale`. Feel free to enter your own `locale` for the `locale-gen` tool. The `--no-install-recommends` will give us the minimal default desktop environment and is missing web browsers, productivity tools, games, and many other things that we don't want. The `oem-config-gtk` is the GTK+ frontend for the NVIDIA post-flash UI configuration and automatically removes most of its dependencies as part of the system setup.
+ 
 ```bash
 locale-gen en_US.UTF-8
 apt update
 apt install ubuntu-desktop oem-config-gtk -y --no-install-recommends
 ```
+
+That's it! You can follow [adding custom applications](/2019/08/building-custom-root-filesystems/#custom-applications) from the [Building Custom Root Filesystems](/2019/08/building-custom-root-filesystems) post if you wish to see how to add Azure IoT Edge, OpenSSH Server, or other applications to your root filesystem.
 
 ## Wrapping It Up
 
@@ -83,6 +87,8 @@ Once `rootfs` customization is complete, `exit` the `chroot`.
 ```bash
 exit
 ```
+
+And now unmount and clean everything up. Leaving these around is a bad idea ;)
 
 ```bash
 sudo umount ./dev/pts
