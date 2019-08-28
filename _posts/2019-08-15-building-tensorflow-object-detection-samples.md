@@ -5,6 +5,41 @@ date: 2019-08-15 18:00
 published: false
 categories: jetson tensorflow
 ---
+NOTES:
+
+4.9 GiB apparent size
+4.4 GiB in /usr
+1.6 GiB in /usr/lib
+1.6 GiB in /usr/local, of which 1 GiB is TensorFlow, 600 MiB CUDA 10.0
+1.0 GiB in /usr/src, of which 782.8 MiB is TensorRT Data in /usr/src/tensorrt
+
+TensorFlow adds 830MB plus 200MB in Deps in /usr/local/lib/python3.6/...
+
+/usr/lib/aarch64-linux-gnu
+cusolver 161 MiB
+cufft 126.7 MiB
+cublas static 107.4 MiB
+cublas dyn 89.3 MiB
+curand 60.5 MiB
+cusparse 60.1 MiB
+
+/usr/lib/aarch64-linux-gnu
+cudnn 366.1 MiB
+cudnn static 357.9 MiB
+nvinfer 143.2 MiB
+nvinfer static 162.2 MiB
+
+TensorRT is ~1.1 GiB
+TensorFlow ~1 GiB
+cuDNN is ~720 MiB
+
+
+
+
+
+
+
+
 # Prologue
 
 This post is part of a series covering the NVIDIA Jetson platform.  It may help to take a peek through the other posts beforehand.
@@ -17,6 +52,34 @@ This post is part of a series covering the NVIDIA Jetson platform.  It may help 
 - [Building for CTI Devices](/2019/08/building-for-cti-devices)
 
 # Introduction
+
+## TensorFlow Base
+
+```dockerfile
+FROM l4t:32.2-jax-jetpack-4.2.1-runtime as base
+
+RUN apt-get update && apt-get install -y \
+    hdf5-tools \
+    libhdf5-dev \
+    libhdf5-serial-dev \
+    libjpeg8-dev \
+    zip \
+    zlib1g-dev \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install -U numpy grpcio absl-py py-cpuinfo psutil portpicker grpcio six mock requests gast h5py astor termcolor
+
+# Install TensorFlow
+RUN python3 -m pip install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu
+
+# Or you can browse https://developer.download.nvidia.com/compute/redist/jp/
+# to find a specific version you wish to install:
+# RUN python3 -m pip install \
+#     --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 \
+#     tensorflow-gpu==$TF_VERSION+nv$NV_VERSION
+```
 
 ## TensorFlow Object Detection Libraries
 
@@ -67,31 +130,7 @@ RUN python3 setup.py build && \
 ## TensorFlow Base
 
 
-```dockerfile
-FROM l4t:32.2-jax-jetpack-4.2.1 as base
-
-RUN apt-get update && apt-get install -y \
-    hdf5-tools \
-    libhdf5-dev \
-    libhdf5-serial-dev \
-    libjpeg8-dev \
-    zip \
-    zlib1g-dev \
-    && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN python3 -m pip install -U numpy grpcio absl-py py-cpuinfo psutil portpicker grpcio six mock requests gast h5py astor termcolor
-
-# Install TensorFlow
-RUN python3 -m pip install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu
-
-# Or you can browse https://developer.download.nvidia.com/compute/redist/jp/
-# to find a specific version you wish to install:
-# RUN python3 -m pip install \
-#     --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 \
-#     tensorflow-gpu==$TF_VERSION+nv$NV_VERSION
-
+```
 COPY --from=objectdetection-builder /models/research/dist/object_detection-0.1-py3-none-any.whl .
 COPY --from=objectdetection-builder /models/research/slim/dist/slim-0.1-py3-none-any.whl .
 RUN python3 -m pip install object_detection-0.1-py3-none-any.whl && \
