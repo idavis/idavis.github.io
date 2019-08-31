@@ -17,7 +17,7 @@ This post is part of a series covering the NVIDIA Jetson platform.  It may help 
 
 # Introduction
 
-Installing TensorFlow for Jetson devices seems very straightforward to start. The [Jetson Zoo] lists the packages to install and you're off to go. Before going into details, we should look at the image sizes so that there is no shock later.
+Installing TensorFlow for Jetson devices seems very straightforward to start. The [Jetson Zoo] lists the packages needed to install TensorFlow and you're off to go. This works fine if you you install and run everything on the host. If you want to run TensorFlow in a container, then we need to dig deeper. Before going into details, we should look at the image sizes so that there is no shock later.
 
 Installing TensorFlow in a container requires a ton of space. Depending on what dependencies you bring on, your final base images will be `2.9 GiB` to `7.0 GiB`. The compiled TensorFlow `.so` file is massive. The TensorFlow built by NVIDIA is linked against `cublas`, `cudart`, `cufft`, `curand`, `cusolver`, `cusparse`, `cuDNN`, and `TensorRT`. If you don't leverage `cuDNN` or `TensorRT`, that can save gigabytes off of your images. A little visual aid might help:
 
@@ -50,6 +50,16 @@ Installing TensorFlow in a container requires a ton of space. Depending on what 
 ```
 
 ## TensorFlow Base 
+
+We can build our images from `base`, `release`, or `devel` images layering in what we need. Given that we know the exact CUDA libraries we need, we can skip over `release` and focus on `base` and `devel` images. This is a little murky and depends on the definition of `dependency` and `required` you want to use. TensorFlow is compiled against many things, but we don't have to use those features. Dockerfiles for TensorFlow along with the [Object Detection](#tensorflow-object-detection-libraries) sample can be found in the [jetson-containers](https://github.com/idavis/jetson-containers) repository. The `SHA`s used in this post are for the Jetson Nano dev kit, copied directly from the JetPack 4.2.1 `devel` image Dockerfile. You can build these images out for your device by copying the appropriate lines.
+
+TLDR for images sizes built in the sections below:
+
+```bash
+l4t     32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-base-min        2.76GB
+l4t     32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-base-min-full   4.41GB
+l4t     32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-devel           6.76GB
+```
 
 ### Devel
 
@@ -85,11 +95,316 @@ RUN python3 -m pip install --no-cache-dir -U numpy grpcio absl-py py-cpuinfo psu
 RUN python3 -m pip install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.14.0+nv19.7
 ```
 
-This will give us an image we can use as a base for build agents and quickly testing, but we are sitting at ~`7 GiB` which is a lot of space for something like a Jetson Nano. With an image that large, you'll be hard pressed to be able to issue an update of the base image without running out of eMMC storage and you'll have to have additional storage configured for docker images.
+This will give us an image we can use as a base for build agents and quickly testing, but we are sitting at `~6.76 GB` which is a lot of space for something like a Jetson Nano. With an image that large, you'll be hard pressed to be able to issue an update of the base image without running out of eMMC storage and you'll have to have additional storage configured for docker images. If you're using a TX2 or Xavier, you will probably be fine.
 
 ### Minimum Full
 
-One of the issues with TensorFlow is that it is linked against so much of the JetPack SDK. To build a minimal image that supports all of the linked libraries, we come ~`300 MiB` away from the full `devel` image. TensorRT currently has nonsensical dependencies such as samples and dev packages bloating our installation. We can remove them after the fact, but it is tedious and not worth going into here.
+Like the `devel` sample above, setting up the base image for TensorFlow, which has all required NVIDIA libraries, requires a considerable amount of the `devel` image, but we can still make some nice gains. We need to install `cublas-dev` and `cudart-dev` for `TensorRT` - `¯\_(ツ)_/¯` - as well as `cublas`, `cudart`, `cufft`, `curand`, `cusolver`, `cusparse` as normal CUDA libs. Then we'll need to set up `cuDNN`, `TensorRT`, `Graph Surgeon`, `UFF Converter`, `OpenCV` (with dependencies), and finally TensorFlow.
+
+```dockerfile
+ARG DEPENDENCIES_IMAGE
+ARG IMAGE_NAME
+ARG TAG
+FROM ${DEPENDENCIES_IMAGE} as dependencies
+
+ARG IMAGE_NAME
+ARG TAG
+FROM ${IMAGE_NAME}:${TAG}-base as tensorflow-base
+
+# CUDA Toolkit for L4T
+
+# TensorRT: cuda-cublas-dev-10-0 cuda-cudart-dev-10-0
+# TensorFlow: cuda-cublas-10-0 cuda-cudart-10-0 cuda-cufft-10-0
+#             cuda-curand-10-0 cuda-cusolver-10-0 cuda-cusparse-10-0
+
+ARG CUDA_TOOLKIT_PKG="cuda-repo-l4t-10-0-local-${CUDA_PKG_VERSION}_arm64.deb"
+
+COPY --from=dependencies /data/${CUDA_TOOLKIT_PKG} ${CUDA_TOOLKIT_PKG}
+RUN echo "0e12b2f53c7cbe4233c2da73f7d8e6b4 ${CUDA_TOOLKIT_PKG}" | md5sum -c - && \
+    dpkg --force-all -i ${CUDA_TOOLKIT_PKG} && \
+    rm ${CUDA_TOOLKIT_PKG} && \
+    apt-get update && \
+    apt-get install -y --allow-downgrades \
+    cuda-cublas-dev-10-0 \
+    cuda-cudart-dev-10-0 \
+    cuda-cublas-10-0 \
+    cuda-cudart-10-0 \
+    cuda-cufft-10-0 \
+    cuda-curand-10-0 \
+    cuda-cusolver-10-0 \
+    cuda-cusparse-10-0 \
+    && \
+    dpkg --purge cuda-repo-l4t-10-0-local-10.0.326 \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# NVIDIA CUDA Deep Neural Network library (cuDNN)
+
+ENV CUDNN_VERSION 7.5.0.56
+
+ENV CUDNN_PKG_VERSION=${CUDA_VERSION}-1
+
+LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
+
+COPY --from=dependencies /data/libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+RUN echo "9f30aa86e505a3b83b127ed7a51309a1 libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb" | md5sum -c - && \
+    dpkg -i libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb && \
+    rm libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+
+COPY --from=dependencies /data/libcudnn7-dev_$CUDNN_VERSION-1+cuda10.0_arm64.deb libcudnn7-dev_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+RUN echo "a010637c80859b2143ef24461ee2ef97 libcudnn7-dev_$CUDNN_VERSION-1+cuda10.0_arm64.deb" | md5sum -c - && \
+    dpkg -i libcudnn7-dev_$CUDNN_VERSION-1+cuda10.0_arm64.deb && \
+    rm libcudnn7-dev_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+
+# NVIDIA TensorRT
+ENV LIBINFER_VERSION 5.1.6
+
+ENV LIBINFER_PKG_VERSION=${LIBINFER_VERSION}-1
+
+LABEL com.nvidia.libinfer.version="${LIBINFER_VERSION}"
+
+ENV LIBINFER_PKG libnvinfer5_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+
+ENV LIBINFER_DEV_PKG libnvinfer-dev_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+
+ENV LIBINFER_SAMPLES_PKG libnvinfer-samples_${LIBINFER_PKG_VERSION}+cuda10.0_all.deb
+
+COPY --from=dependencies /data/${LIBINFER_PKG} ${LIBINFER_PKG}
+RUN echo "dca1e2dadeae2186b57a11861fac7652 ${LIBINFER_PKG}" | md5sum -c - && \
+    dpkg -i ${LIBINFER_PKG} && \
+    rm ${LIBINFER_PKG}
+
+COPY --from=dependencies /data/${LIBINFER_DEV_PKG} ${LIBINFER_DEV_PKG}
+RUN echo "0e0c0c6d427847d5994f04fbce0401d2 ${LIBINFER_DEV_PKG}" | md5sum -c - && \
+    dpkg -i ${LIBINFER_DEV_PKG} && \
+    rm ${LIBINFER_DEV_PKG}
+
+COPY --from=dependencies /data/${LIBINFER_SAMPLES_PKG} ${LIBINFER_SAMPLES_PKG}
+RUN echo "e8f021ea1fad99d99f0f551d7ea3146a ${LIBINFER_SAMPLES_PKG}" | md5sum -c - && \
+    dpkg -i ${LIBINFER_SAMPLES_PKG} && \
+    rm ${LIBINFER_SAMPLES_PKG}
+
+ENV TENSORRT_VERSION 5.1.6.1
+
+ENV TENSORRT_PKG_VERSION=${TENSORRT_VERSION}-1
+
+LABEL com.nvidia.tensorrt.version="${TENSORRT_VERSION}"
+
+ENV TENSORRT_PKG tensorrt_${TENSORRT_PKG_VERSION}+cuda10.0_arm64.deb
+
+COPY --from=dependencies /data/${TENSORRT_PKG} ${TENSORRT_PKG}
+RUN echo "66e6df17b7a92d32dd3465bdfca9fc8d ${TENSORRT_PKG}" | md5sum -c - && \
+    dpkg -i ${TENSORRT_PKG} && \
+    rm ${TENSORRT_PKG}
+
+# Graph Surgeon
+COPY --from=dependencies /data/graphsurgeon-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb graphsurgeon-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+RUN echo "5729cc195d365335991c58abd75e0c99 graphsurgeon-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb" | md5sum -c - && \
+    dpkg -i graphsurgeon-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb && \
+    rm graphsurgeon-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+
+# UFF Converter
+COPY --from=dependencies /data/uff-converter-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb uff-converter-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+RUN echo "b6310b19820a8b844d36dc597d2bf835 uff-converter-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb" | md5sum -c - && \
+    dpkg -i uff-converter-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb && \
+    rm uff-converter-tf_${LIBINFER_PKG_VERSION}+cuda10.0_arm64.deb
+
+# Install dependencies for OpenCV
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libavcodec-extra57 \
+        libavformat57 \
+        libavutil55 \
+        libcairo2 \
+        libgtk2.0-0 \
+        libswscale4 \
+        libtbb2 \
+        libtbb-dev \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+## Additional OpenCV dependencies usually installed by the CUDA Toolkit
+
+RUN apt-get update && \
+    apt-get install -y \
+    libgstreamer1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Open CV 3.3.1
+
+ENV OPENCV_VERSION 3.3.1
+
+ENV OPENCV_PKG_VERSION=${OPENCV_VERSION}-2-g31ccdfe11
+
+COPY --from=dependencies /data/libopencv_${OPENCV_PKG_VERSION}_arm64.deb libopencv_${OPENCV_PKG_VERSION}_arm64.deb
+RUN echo "dd5b571c08a0098141203daec2ea1acc libopencv_${OPENCV_PKG_VERSION}_arm64.deb" | md5sum -c - && \
+    dpkg -i libopencv_${OPENCV_PKG_VERSION}_arm64.deb && \
+    rm libopencv_${OPENCV_PKG_VERSION}_arm64.deb
+
+## Open CV python binding
+COPY --from=dependencies /data/libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb
+RUN echo "35776ce159afa78a0fe727d4a3c5b6fa libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb" | md5sum -c - && \
+    dpkg -i libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb && \
+    rm libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb
+```
+
+The rest follows just like from the `devel` image to install TensorFlow:
+
+```dockerfile
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libhdf5-dev \
+    libhdf5-serial-dev \
+    python3-dev \
+    python3-h5py \
+    python3-pip \
+    python3-setuptools \
+    && \
+    python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir --upgrade setuptools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir -U numpy grpcio absl-py py-cpuinfo psutil portpicker grpcio six mock requests gast astor termcolor
+
+# Install TensorFlow
+
+#RUN python3 -m pip install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu
+# can browse from https://developer.download.nvidia.com/compute/redist/jp/
+#RUN python3 -m pip install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==$TF_VERSION+nv$NV_VERSION
+
+RUN python3 -m pip install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.14.0+nv19.7
+```
+
+### Minimum Usable
+
+If you aren't using `TensorRT`, we can drop almost `1.7GB` from the image including all of its dependencies.
+
+Note: In this example, we installed `cuDNN`, but we can skip this if you don't need the APIs that leverage it. You will get a warning when running your application that it can't load the `cuDNN`'s `.so` file, but you're app should still be runnable.
+
+```dockerfile
+ARG DEPENDENCIES_IMAGE
+ARG IMAGE_NAME
+ARG TAG
+FROM ${DEPENDENCIES_IMAGE} as dependencies
+
+ARG IMAGE_NAME
+ARG TAG
+FROM ${IMAGE_NAME}:${TAG}-base as tensorflow-base
+
+# CUDA Toolkit for L4T
+
+# TensorFlow: cuda-cublas-10-0 cuda-cudart-10-0 cuda-cufft-10-0
+#             cuda-curand-10-0 cuda-cusolver-10-0 cuda-cusparse-10-0
+
+ARG CUDA_TOOLKIT_PKG="cuda-repo-l4t-10-0-local-${CUDA_PKG_VERSION}_arm64.deb"
+
+COPY --from=dependencies /data/${CUDA_TOOLKIT_PKG} ${CUDA_TOOLKIT_PKG}
+RUN echo "0e12b2f53c7cbe4233c2da73f7d8e6b4 ${CUDA_TOOLKIT_PKG}" | md5sum -c - && \
+    dpkg --force-all -i ${CUDA_TOOLKIT_PKG} && \
+    rm ${CUDA_TOOLKIT_PKG} && \
+    apt-get update && \
+    apt-get install -y --allow-downgrades \
+    cuda-cublas-10-0 \
+    cuda-cudart-10-0 \
+    cuda-cufft-10-0 \
+    cuda-curand-10-0 \
+    cuda-cusolver-10-0 \
+    cuda-cusparse-10-0 \
+    && \
+    dpkg --purge cuda-repo-l4t-10-0-local-10.0.326 \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# NVIDIA CUDA Deep Neural Network library (cuDNN)
+
+ENV CUDNN_VERSION 7.5.0.56
+
+ENV CUDNN_PKG_VERSION=${CUDA_VERSION}-1
+
+LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
+
+COPY --from=dependencies /data/libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+RUN echo "9f30aa86e505a3b83b127ed7a51309a1 libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb" | md5sum -c - && \
+    dpkg -i libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb && \
+    rm libcudnn7_$CUDNN_VERSION-1+cuda10.0_arm64.deb
+
+# Install dependencies for OpenCV
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libavcodec-extra57 \
+        libavformat57 \
+        libavutil55 \
+        libcairo2 \
+        libgtk2.0-0 \
+        libswscale4 \
+        libtbb2 \
+        libtbb-dev \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+## Additional OpenCV dependencies usually installed by the CUDA Toolkit
+
+RUN apt-get update && \
+    apt-get install -y \
+    libgstreamer1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Open CV 3.3.1
+
+ENV OPENCV_VERSION 3.3.1
+
+ENV OPENCV_PKG_VERSION=${OPENCV_VERSION}-2-g31ccdfe11
+
+COPY --from=dependencies /data/libopencv_${OPENCV_PKG_VERSION}_arm64.deb libopencv_${OPENCV_PKG_VERSION}_arm64.deb
+RUN echo "dd5b571c08a0098141203daec2ea1acc libopencv_${OPENCV_PKG_VERSION}_arm64.deb" | md5sum -c - && \
+    dpkg -i libopencv_${OPENCV_PKG_VERSION}_arm64.deb && \
+    rm libopencv_${OPENCV_PKG_VERSION}_arm64.deb
+
+## Open CV python binding
+COPY --from=dependencies /data/libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb
+RUN echo "35776ce159afa78a0fe727d4a3c5b6fa libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb" | md5sum -c - && \
+    dpkg -i libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb && \
+    rm libopencv-python_${OPENCV_PKG_VERSION}_arm64.deb
+```
+
+The rest follows just like from the `devel` image to install TensorFlow:
+
+```dockerfile
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libhdf5-dev \
+    libhdf5-serial-dev \
+    python3-dev \
+    python3-h5py \
+    python3-pip \
+    python3-setuptools \
+    && \
+    python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir --upgrade setuptools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir -U numpy grpcio absl-py py-cpuinfo psutil portpicker grpcio six mock requests gast astor termcolor
+
+# Install TensorFlow
+
+#RUN python3 -m pip install --pre --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu
+# can browse from https://developer.download.nvidia.com/compute/redist/jp/
+#RUN python3 -m pip install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==$TF_VERSION+nv$NV_VERSION
+
+RUN python3 -m pip install --no-cache-dir --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.14.0+nv19.7
+```
 
 ## TensorFlow Object Detection Libraries
 
@@ -98,6 +413,8 @@ You might want to give TensorFlow a spin on your Jetson. We can build off of the
 1. Package the APIs as wheels to be installed later. (I'd rather not clone the whole repo and run from there)
 2. Install the wheels and their dependencies into our app base.
 3. Install our test app and it's dependencies.
+
+Adding this sample application will increase your image size by `~1.48GB` and the model will be downloaded on application run. You can decrease startup time by bundling the model as a layer.
 
 ### Object Detection Wheels
 
@@ -399,5 +716,31 @@ if __name__ == '__main__':
 
 ```
 
+Assuming you've cloned the [jetson-containers](https://github.com/idavis/jetson-containers) repository:
+
+```bash
+make build-32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-min
+# or
+make build-32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-min-full
+# or
+make build-32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-devel
+```
+
+In a terminal, on the device, lets open X11 forwarding from the container
+
+```bash
+~/jetson-containers$ xhost +local:docker
+```
+
+Now we can run the container image and see boxes and confidence scores rendered to the screen. Press `f` for full screen or `esc` to exit.
+
+```bash
+# only using --privileged here for brevity
+user@nano-dev:~/$ docker run --rm -it --privileged --net=host -e "DISPLAY" l4t:32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-min
+# or
+user@nano-dev:~/$ docker run --rm -it --privileged --net=host -e "DISPLAY" l4t:32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-min-full
+# or
+user@nano-dev:~/$ docker run --rm -it --privileged --net=host -e "DISPLAY" l4t:32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-devel
+```
 
 [Jetson Zoo]: https://elinux.org/Jetson_Zoo#TensorFlow
