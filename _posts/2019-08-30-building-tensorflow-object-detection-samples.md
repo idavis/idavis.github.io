@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Jetson Containers - Building TensorFlow Object Detection Samples"
-date: 2019-08-30 18:00
-published: false
+date: 2019-08-30 18:15
+published: true
 categories: jetson tensorflow
 ---
 # Prologue
@@ -19,7 +19,7 @@ This post is part of a series covering the NVIDIA Jetson platform.  It may help 
 
 Installing TensorFlow for Jetson devices seems very straightforward to start. The [Jetson Zoo] lists the packages needed to install TensorFlow and you're off to go. This works fine if you you install and run everything on the host. If you want to run TensorFlow in a container, then we need to dig deeper. Before going into details, we should look at the image sizes so that there is no shock later.
 
-Installing TensorFlow in a container requires a ton of space. Depending on what dependencies you bring on, your final base images will be `2.9 GiB` to `7.0 GiB`. The compiled TensorFlow `.so` file is massive. The TensorFlow built by NVIDIA is linked against `cublas`, `cudart`, `cufft`, `curand`, `cusolver`, `cusparse`, `cuDNN`, and `TensorRT`. If you don't leverage `cuDNN` or `TensorRT`, that can save gigabytes off of your images. A little visual aid might help:
+Installing TensorFlow in a container requires a ton of space. Depending on what dependencies you bring on, your final base images will be `2.76 GB` to `7.76 GB`. The compiled TensorFlow `.so` file is massive. The TensorFlow built by NVIDIA is linked against `cublas`, `cudart`, `cufft`, `curand`, `cusolver`, `cusparse`, `cuDNN`, and `TensorRT`. If you don't leverage `cuDNN` or `TensorRT`, that can save gigabytes off of your images. A little visual aid might help:
 
 ```
 +-------------------------------------------------------------------+
@@ -63,7 +63,7 @@ l4t     32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-devel           6.76GB
 
 ### Devel
 
-If we start off from the `devel` images for our device, the TensorFlow installation is pretty straightforward. I've moved the `h5py` installation into the `apt` portion as it is set at the correct version range (as compared to the [Jetson Zoo]). Took me hours to figure out the version mismatch when installing it with `pip`.
+If we start off from the `devel` images for our device, the TensorFlow installation is pretty straightforward. I've moved the `h5py` installation into the `apt` portion as it is set at the correct version range (as compared to the [Jetson Zoo]).
 
 ```dockerfile
 ARG IMAGE_NAME
@@ -285,7 +285,7 @@ RUN python3 -m pip install --no-cache-dir --extra-index-url https://developer.do
 
 If you aren't using `TensorRT`, we can drop almost `1.7GB` from the image including all of its dependencies.
 
-Note: In this example, we installed `cuDNN`, but we can skip this if you don't need the APIs that leverage it. You will get a warning when running your application that it can't load the `cuDNN`'s `.so` file, but you're app should still be runnable.
+Note: In this example, we installed `cuDNN`, but we can skip this if you don't need the APIs that leverage it. You will get a warning when running your application that it can't load the `cuDNN`'s `.so` file, but you're app should still be runnable. This will drop the image down to `2.37GB`.
 
 ```dockerfile
 ARG DEPENDENCIES_IMAGE
@@ -412,7 +412,7 @@ You might want to give TensorFlow a spin on your Jetson. We can build off of the
 
 1. Package the APIs as wheels to be installed later. (I'd rather not clone the whole repo and run from there)
 2. Install the wheels and their dependencies into our app base.
-3. Install our test app and it's dependencies.
+3. Install our test app and its dependencies.
 
 Adding this sample application will increase your image size by `~1.48GB` and the model will be downloaded on application run. You can decrease startup time by bundling the model as a layer.
 
@@ -446,6 +446,8 @@ RUN python3 setup.py build && \
 ```
 
 ### App Base
+
+Now we get to layer in the wheels, data, and app dependencies so that the last bit is simple.
 
 ```dockerfile
 FROM tensorflow-base as app-base
@@ -493,6 +495,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ```
 
 ### The App
+
+This part should be nice and small (unless we drop something big in `requirements.txt`) and this is where our app releases should be living for most changes in our deployments.
 
 ```dockerfile
 FROM app-base
@@ -716,6 +720,8 @@ if __name__ == '__main__':
 
 ```
 
+### Assembling the Pieces
+
 Assuming you've cloned the [jetson-containers](https://github.com/idavis/jetson-containers) repository:
 
 ```bash
@@ -726,7 +732,7 @@ make build-32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-min-full
 make build-32.2-nano-dev-jetpack-4.2.1-tensorflow-zoo-devel
 ```
 
-In a terminal, on the device, lets open X11 forwarding from the container
+In a terminal, on the device, lets open X11 forwarding from docker containers
 
 ```bash
 ~/jetson-containers$ xhost +local:docker
