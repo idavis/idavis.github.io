@@ -123,11 +123,11 @@ With our IoT Hub Connection made, we can select our device and configure the rem
 
 ![Setup IoT Edge Simulator](/assets/setup_simulator.png)
 
-We can now run our application in the simulator in the remote VM. `Ctrl+Shift+P` => `Azure IoT Edge: Build and Run IoT Edge Solution in Simulator`. Choose the debug template so we can have symbols available and attach to the remote container:
+We can now run our application with the simulator in the remote VM. `Ctrl+Shift+P` => `Azure IoT Edge: Build and Run IoT Edge Solution in Simulator`. Choose the debug template so we can have symbols available and attach to the remote container:
 
 ![Run in Simulator](/assets/run_in_simulator.png)
 
-Since we chose the debug template, we can select the debug icon on the left hand side and choose to debug a remote module. Make sure to set a breakpoint in the `testmodule` so you can see the breakpoint hit.
+Since we chose the debug template, we can select the debug icon on the left hand side and choose to debug a remote module. Make sure to set a breakpoint in the `PipeMessage` method in the `testmodule` so you can see the breakpoint hit when the simulated temperature sensor relays telemetry.
 
 ![Debug Remote Module](/assets/debug_module.png)
 
@@ -190,7 +190,7 @@ If you forget to do this, you'll get permission errors while running remote dock
 
 You will likely want to [Start/Stop VMs during off-hours solution in Azure Automation](https://docs.microsoft.com/en-us/azure/automation/automation-solution-vm-management) to save money while you aren't working on the VM.
 
-You can configure a DNS name for your VM in the VM IP settings so that you can address your VM in a better way that IP such as `myiotedgedev.northeurope.cloudapp.azure.com`.
+You can configure a DNS name for your VM in the VM IP settings so that you can address your VM in a better way than IP such as `myiotedgedev.northeurope.cloudapp.azure.com`.
 
 When creating the VM template, you'll likely want to configure [/etc/skel](http://www.linfo.org/etc_skel.html) to configure the environment when new VM instances are created from the template.
 
