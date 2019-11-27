@@ -8,7 +8,7 @@ categories: qemu arm
 
 ## Introduction
 
-In a prior article, [Jetson Containers - Introduction](/2019/07/jetson-containers-introduction), I showed how to bring `QEMU` static libraries into the container enabling the configuration/creation of ARM images and `debootstrap`ped file systems. We can make this effort transparent to the `chroot` or container with a little bit of effort.
+In a prior article, [Jetson Containers - Introduction](/2019/07/jetson-containers-introduction), I showed how to bring `QEMU` static libraries into the container enabling the configuration/creation of ARM images and `debootstrap`'ped file systems. We can make this effort transparent to the `chroot` or container with a little bit of effort.
 
 ## Required Packages (Ubuntu 18.04)
 
@@ -63,7 +63,7 @@ e_machine: arm32 = 40 (x28), arm64 = 183 (xb7)
 
 ```
 
-With the magic found and the header decoded, we have our format flushing out.
+With the magic found and the header decoded, we have our format flushed out.
 
 ```
 :name:type:offset:magic:mask:interpreter:flags
@@ -105,6 +105,8 @@ We should now be able to pull and run commands from `arm32v7` and `arm64v8` cont
 
 ```bash
 $ docker run arm32v7/busybox ls -la
-
+```
+or
+```bash
 $ docker run arm64v8/busybox ls -la
 ```
