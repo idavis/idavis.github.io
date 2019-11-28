@@ -10,9 +10,11 @@ categories: qemu arm
 
 In a prior article, [Jetson Containers - Introduction](/2019/07/jetson-containers-introduction), I showed how to bring `QEMU` static libraries into the container enabling the configuration/creation of ARM images and `debootstrap`'ped file systems. We can make this effort transparent to the `chroot` or container with a little bit of effort.
 
+`TLDR` - Assuming you have installed the packages in the [Required Packages (Ubuntu 18.04)](#required-packages-(ubuntu-18.04)) section, go to [The How](#the-how) section below.
+
 ## Required Packages (Ubuntu 18.04)
 
-The images are pre-configured to leverage `QEMU` requiring only that you have `QEMU` and `binfmt-support` installed. To install them run:
+We need to install `QEMU` and `binfmt` support so that we can leverage the [binfmt_misc](https://en.wikipedia.org/wiki/Binfmt_misc) support in the Linux kernel.
 
 ```bash
 sudo apt-get update && sudo apt-get install -y --no-install-recommends \
@@ -67,22 +69,50 @@ With the magic found and the header decoded, we have our format flushed out.
 
 ```
 :name:type:offset:magic:mask:interpreter:flags
-name:qemu-<arm type>
-type:M for magic and E for extension.
-offset: optional and 0 by default
-magic: found above :)
-mask: line after magic above but we don't care about the ei_version or the rest of e_ident. Change those bytes to \x00
-interpreter: line after the mask above, location of our qemu binary
-flags: F - fix binary - interpreter is always available after emulation is installed
+```
 
-arm32
-:qemu-arm:M::<magic>:<mask>:/usr/bin/qemu-arm-static:F
+- `name`: qemu-arm or qemu-aarch64
+- `type`: M to use the format's magic number for identification
+- `offset`: optional and 0 by default, and we'll use the default.
+- `magic`: found above:
+  - arm32v7: `\x7f\x45\x4c\x46\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00`
+  - arm64v8: `\x7f\x45\x4c\x46\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00`
+- defined `mask`: line after magic above 
+  - arm32v7: `\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff`
+  - arm64v8: `\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff`
+- applied `mask`: We don't care about the `ei_version` or the rest of `e_ident`. Change those bytes to `\x00`
+  - arm32v7: `\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xff\xff\xff`
+  - arm64v8: `\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xff\xff\xff`
+- `interpreter`: line after the mask above, location of our qemu binary
+- `flags`: F - fix binary - interpreter is always available after emulation is installed. This is key for as it makes the interpreter available inside other mount namespaces (like containers) and `chroots`.
 
-arm64
-:qemu-aarch64:M::<magic>:<mask>:/usr/bin/qemu-aarch64-static:F 
+arm32v7:
+```
+:qemu-arm:M::\x7f\x45\x4c\x46\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00:\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xff\xff\xff:/usr/bin/qemu-arm-static:F
+```
+
+arm64v8:
+```
+:qemu-aarch64:M::\x7f\x45\x4c\x46\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xfe\xff\xff\xff:/usr/bin/qemu-aarch64-static:F 
 ```
 
 ## The How
+
+### Write the Failing Test
+
+If you try to run an `arm32v7` or `arm64v8` container, it should error with something close to `standard_init_linux.go:211: exec user process caused "exec format error"`. Go ahead and give it a try, we'll come back to these after configuring the system to verify functionality.
+
+```bash
+$ docker run arm32v7/busybox ls -la
+```
+
+or
+
+```bash
+$ docker run arm64v8/busybox ls -la
+```
+
+### Configuration
 
 With the details hashed out, it is time to set up our `systemd-binfmt.service` configuration:
 
@@ -91,22 +121,26 @@ With the details hashed out, it is time to set up our `systemd-binfmt.service` c
 # additional binary executable formats which can be handled by the system.
 sudo mkdir -p /lib/binfmt.d
 
-# Create a configuration for arm32
-sudo sh -c 'echo :qemu-arm:M::\\x7fELF\\x01\\x01\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x28\\x00:\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\xff\\xff:/usr/bin/qemu-arm-static:F > /lib/binfmt.d/qemu-arm-static.conf'
+# Create a configuration for arm32v7
+sudo sh -c 'echo :qemu-arm:M::\\x7f\\x45\\x4c\\x46\\x01\\x01\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x28\\x00:\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\xff\\xff:/usr/bin/qemu-arm-static:F > /lib/binfmt.d/qemu-arm-static.conf'
 
-# Create a configuration for arm64
-sudo sh -c 'echo :qemu-aarch64:M::\\x7fELF\\x02\\x01\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\xb7\\x00:\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\xff\\xff:/usr/bin/qemu-aarch64-static:F > /lib/binfmt.d/qemu-aarch64-static.conf'
+# Create a configuration for arm64v8
+sudo sh -c 'echo :qemu-aarch64:M::\\x7f\\x45\\x4c\\x46\\x02\\x01\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\xb7\\x00:\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\xff\\xff:/usr/bin/qemu-aarch64-static:F > /lib/binfmt.d/qemu-aarch64-static.conf'
 
 # Restart the service to force an evaluation of the /lib/binfmt.d directory
 sudo systemctl restart systemd-binfmt.service
 ```
+
+### Run the Tests
 
 We should now be able to pull and run commands from `arm32v7` and `arm64v8` containers and applications transparently.
 
 ```bash
 $ docker run arm32v7/busybox ls -la
 ```
+
 or
+
 ```bash
 $ docker run arm64v8/busybox ls -la
 ```
