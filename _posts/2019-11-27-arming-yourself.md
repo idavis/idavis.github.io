@@ -53,16 +53,28 @@ yes
 
 Note that `\x7f\x45\x4c\x46` is `\\x7fELF`, the [ELF](http://man7.org/linux/man-pages/man5/elf.5.html) format [magic number](https://en.wikipedia.org/wiki/Magic_number_(programming)). 
 ```
-\x7f\x45\x4c\x46  \x01         \x01       \x01          \x00\x00\x00\x00\x00\x00\x00\x00\x00        \x02      \x00\x28     \x00
-|-  ELF MAGIC  -| |-ei_class-| |-ei_data-||-ei_version-||- rest of e_ident padded out to 16 bytes -||-e_type-||-e_machine-||-e_version-|
-\x7f\x45\x4c\x46  \x02         \x01       \x01          \x00\x00\x00\x00\x00\x00\x00\x00\x00        \x02      \x00\xb7     \x00
-
-ei_class (bitness): ELFCLASS32 = 1, ELFCLASS64 = 2
-ei_data:  processor-specific data in the file is two's complement, little-endian = 1, or two's complement, big-endian = 2
-ei_version: ELF specification version, current = 1
-e_type: Executable = 2
-e_machine: arm32 = 40 (x28), arm64 = 183 (xb7)
-
+| arm32v7 | ident | arm64v8  | Description |
+|---|---|---|---|
+| \x7f | - | \x7f |  |
+| \x45 | ELF MAGIC | \x45 |  |
+| \x4c | NUMBER | \x4c |  |
+| \x46 | - | \x46 |  |
+| \x01  | ei_class | \x02 | (bitness): ELFCLASS32 = 1, ELFCLASS64 = 2 |
+| \x01  | ei_data | \x01  | processor-specific data in the file is two's complement, little-endian = 1, or two's complement, big-endian = 2 |
+| \x01 | ei_version | \x01 | ELF specification version, current = 1 |
+| \x00 | - | \x00 |  |
+| \x00 | remaining | \x00 |  |
+| \x00 | e_ident | \x00 |  |
+| \x00 | padded | \x00 |  |
+| \x00 | out | \x00 |  |
+| \x00 | to | \x00 |  |
+| \x00 | 16 | \x00 |  |
+| \x00 | bytes | \x00 |  |
+| \x00 | - | \x00 | |
+| \x02  | e_type | \x02  | Executable = 2 |
+| \x00 | e_machine (high) | \x00 |  |
+| \x28 | e_machine (low) | \xb7 | arm32 = 40 (x28), arm64 = 183 (xb7) |
+| \x00 | e_version | \x00 |  |
 ```
 
 With the magic found and the header decoded, we have our format flushed out.
