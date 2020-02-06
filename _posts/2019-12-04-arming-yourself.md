@@ -113,7 +113,11 @@ With the magic found and the header decoded, we have our format flushed out.
 
 ### Write the Failing Test
 
-If you try to run an `arm32v7` or `arm64v8` container, it should error with something close to `standard_init_linux.go:211: exec user process caused "exec format error"`. Go ahead and give it a try, we'll come back to these after configuring the system to verify functionality.
+If you try to run container with an unknown format, it should error with something close to
+- `standard_init_linux.go:211: exec user process caused "exec format error"`
+- `standard_init_linux.go:211: exec user process caused "no such file or directory"`
+
+Go ahead and give it a try, we'll come back to these after configuring the system to verify functionality.
 
 ```bash
 $ docker run arm32v7/busybox uname -m
