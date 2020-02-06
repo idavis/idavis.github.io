@@ -50,10 +50,10 @@ To set this up we need to:
 If you just want the commands to flash an Orbitty device with the v125 BSP:
 
 ```bash
-~/jetson-containers/$ make cti-32.1-tx2-125-deps
+~/jetson-containers/$ make cti-32.1-tx2-bsp-v125-deps
 ~/jetson-containers/$ make 32.1-tx2-jetpack-4.2-deps
-~/jetson-containers/$ make image-cti-32.1-v125-orbitty
-~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-v125-orbitty-image
+~/jetson-containers/$ make image-cti-32.1-tx2-bsp-v125-orbitty
+~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-tx2-bsp-v125-orbitty-image
 ```
 
 No using an Orbitty? Replace `orbitty` with your device and module, and chance `125` the the appropriate BSP version:
@@ -74,7 +74,7 @@ No using an Orbitty? Replace `orbitty` with your device and module, and chance `
 
 ## BSP Dependency Image
 
-CTI publishes BSPs that tend to align on the module level. The current Xavier BSP version is v203 and TX1/TX2/TX2i is v125.
+CTI publishes BSPs that tend to align on the module and driver pack level.
 
 To create the BSP dependency image we can take two paths (first is a lot simpler):
 
@@ -82,15 +82,15 @@ To create the BSP dependency image we can take two paths (first is a lot simpler
 
      UI:
 
-    Press `Ctrl+Shift+B`, select `make <CTI dependencies>`, select `32.1-tx2-125-deps`,  press `Enter`.
+    Press `Ctrl+Shift+B`, select `make <CTI dependencies>`, select `cti-32.1-tx2-bsp-v125-deps`,  press `Enter`.
  
     Terminal: 
     
     ```bash
-    ~/jetson-containers/$ make cti-32.1-tx2-125-deps
+    ~/jetson-containers/$ make cti-32.1-tx2-bsp-v125-deps
     ```
  
-    This will download the v125 BSP and put it into a container image `l4t:cti-32.1-tx2-125-deps`
+    This will download the v125 BSP and put it into a container image `l4t:cti-32.1-tx2-bsp-v125-deps`
 2. Bundle it with the JetPack dependencies image
  - Manually download the JetPack binaries
  - Manually download the BSP and put it in the same folder as the JetPack binaries
@@ -100,7 +100,7 @@ To create the BSP dependency image we can take two paths (first is a lot simpler
      ~/jetson-containers$ make from-deps-folder-32.1-tx2-jetpack-4.2
      ```
      This will build `l4t:32.1-tx2-jetpack-4.2-deps` with the BSP in the same folder
- - Set the `BSP_DEPENDENCIES_IMAGE` in the `.env` to this newly created image `l4t:32.1-tx2-jetpack-4.2-deps`. By default it uses `l4t:cti-32.1-tx2-125-deps` from the first method above.
+ - Set the `BSP_DEPENDENCIES_IMAGE` in the `.env` to this newly created image `l4t:32.1-tx2-jetpack-4.2-deps`. By default it uses `l4t:cti-32.1-tx2-bsp-v125-deps` from the first method above.
 
 ## JetPack Dependency Image
 
@@ -235,22 +235,22 @@ ENTRYPOINT ["sh", "-c", "sudo ./entrypoint.sh $*", "--"]
 
 UI:
 
-Use `Ctrl+Shift+B` which will drop down a build task list. Select `make <CTI imaging options>` and hit `Enter`, select `cti-32.1-v125-orbitty` and hit `Enter`.
+Use `Ctrl+Shift+B` which will drop down a build task list. Select `make <CTI imaging options>` and hit `Enter`, select `cti-32.1-tx2-bsp-v125-orbitty-image` and hit `Enter`.
 
 Terminal:
 
 ```bash
-~/jetson-containers$ make image-cti-32.1-v125-orbitty
+~/jetson-containers$ make image-cti-32.1-tx2-bsp-v125-orbitty
 ```
 
-Once built, you'll have the container image `l4t:cti-32.1-v125-orbitty-image` ready to flash your device.
+Once built, you'll have the container image `l4t:cti-32.1-tx2-bsp-v125-orbitty-image` ready to flash your device.
 
 ## Flashing the Device
 
 Put the device into recovery mode and run:
 
 ```bash
-~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-v125-orbitty-image
+~/jetson-containers/$ ./flash/flash.sh l4t:cti-32.1-tx2-bsp-v125-orbitty-image
 ```
 
 The device will reboot and await your configuration.
