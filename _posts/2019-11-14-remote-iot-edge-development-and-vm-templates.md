@@ -75,7 +75,7 @@ sudo apt-get install -y apt-transport-https
 wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
 sudo apt update
-sudo apt-get install -y dotnet-sdk-3.0
+sudo apt-get install -y dotnet-sdk-3.1
 
 # Install docker-compose and its dependencies
 sudo apt install -y curl
