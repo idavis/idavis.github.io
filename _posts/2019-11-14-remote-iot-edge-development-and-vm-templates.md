@@ -79,7 +79,7 @@ sudo apt-get install -y dotnet-sdk-3.0
 
 # Install docker-compose and its dependencies
 sudo apt install -y curl
-sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 # Install IoT Edge Hub Dev Simulator and its dependencies
 sudo apt install -y python3-pip
