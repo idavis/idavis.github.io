@@ -69,21 +69,25 @@ sudo apt install -y docker.io
 
 # Configure Docker
 sudo usermod -aG docker $USER
+sudo reboot
 
 # Install .NET Core and its dependencies
 sudo apt-get install -y apt-transport-https
 wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
 sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb 
 sudo apt update
 sudo apt-get install -y dotnet-sdk-3.1
 
 # Install docker-compose and its dependencies
 sudo apt install -y curl
-sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 # Install IoT Edge Hub Dev Simulator and its dependencies
 sudo apt install -y python3-pip
 python3 -m pip install --upgrade pip
+sudo -H python3 -m pip install --upgrade pip
+sudo -H python3 -m pip install --ignore-installed PyYAML
 sudo -H python3 -m pip install --upgrade iotedgehubdev
 ```
 
